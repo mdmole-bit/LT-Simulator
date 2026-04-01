@@ -2,6 +2,9 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+[functions."sendmail"]
+  timeout = 26
+
 [[headers]]
   for = "/*"
   [headers.values]
