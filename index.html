@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>간이식 마취 시뮬레이터 — 조선대병원 마취통증의학과</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap');
+
+/* ══ LIGHT THEME VARIABLES ══ */
+:root {
+  --bg:#f0f4f8;
+  --s1:#ffffff;
+  --s2:#f7f9fc;
+  --s3:#eef2f7;
+  --border:#d8e2ee;
+  --border2:#c4d4e6;
+  --acc:#1a5fd4;
+  --acc2:#1450b8;
+  --acc3:rgba(26,95,212,0.08);
+  --acc-text:#1a5fd4;
+  --gold:#b8720a;
+  --red:#c0392b;
+  --red2:#a93226;
+  --redbg:rgba(192,57,43,0.07);
+  --green:#0a7c52;
+  --green2:#086644;
+  --greenbg:rgba(10,124,82,0.07);
+  --yellow:#9a6c00;
+  --yelbg:rgba(154,108,0,0.07);
+  --cyan:#0878a0;
+  --t1:#1a2635;
+  --t2:#3d5470;
+  --t3:#6b849e;
+  --t4:#98afc4;
+  --shadow:0 1px 4px rgba(0,0,0,0.08);
+  --shadow2:0 2px 12px rgba(0,0,0,0.10);
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Noto Sans KR',sans-serif;
+  --serif:'Gowun Batang',serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-scroll-behavior:smooth;scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px;line-height:1.65;min-height:100vh;overflow-x:hidden;}
+
+/* ══ LOGIN ══ */
+#loginScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:600;background:var(--bg);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;padding:20px;}
+#loginScreen.gone{display:none;}
+.login-wrap{width:100%;max-width:500px;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-mark{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--acc);text-transform:uppercase;margin-bottom:12px;display:-webkit-flex;display:flex;align-items:center;justify-content:center;gap:10px;}
+.login-logo-mark::before,.login-logo-mark::after{content:'';width:36px;height:1px;background:var(--border2);}
+.login-title{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--t1);line-height:1.2;margin-bottom:4px;}
+.login-sub{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:0.15em;}
+.login-card{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:28px;box-shadow:var(--shadow2);position:relative;overflow:hidden;}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc),#4a9eff,var(--acc));}
+.login-section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.15em;color:var(--t3);text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.login-grid{display:-ms-grid;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.form-group{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:4px;}
+.form-label{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;}
+.form-input,.form-select{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--t1);font-family:var(--sans);font-size:13px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%;-webkit-appearance:none;appearance:none;}
+.form-input:focus,.form-select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,95,212,0.12);}
+.form-input::placeholder{color:var(--t4);}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b849e' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.login-divider{height:1px;background:var(--border);margin:16px 0;}
+.case-preview{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;}
+.cp-label{font-family:var(--mono);font-size:9px;color:var(--acc);letter-spacing:0.1em;margin-bottom:8px;display:-webkit-flex;display:flex;align-items:center;gap:6px;}
+.cp-label::after{content:'매 시작마다 달라집니다';color:var(--t4);font-size:8px;}
+.cp-grid{display:-ms-grid;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.cp-item{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:7px 9px;}
+.cp-key{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:0.05em;margin-bottom:2px;}
+.cp-val{font-size:12px;font-weight:700;color:var(--t1);}
+.cp-val.w{color:var(--yellow);}
+.cp-val.d{color:var(--red);}
+.branch-info{background:rgba(26,95,212,0.05);border:1px solid rgba(26,95,212,0.15);border-radius:8px;padding:9px 12px;margin-bottom:16px;font-size:12px;color:var(--t2);display:-webkit-flex;display:flex;align-items:flex-start;gap:8px;}
+.login-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--acc),var(--acc2));border:none;border-radius:10px;color:white;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,95,212,0.3);}
+.login-btn:disabled{opacity:0.4;cursor:default;transform:none;box-shadow:none;}
+
+/* ══ HEADER ══ */
+.hdr{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;justify-content:space-between;}
+.hdr.hidden{display:none!important;}
+.hdr{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.95);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:50px;padding:0 20px;}
+.hdr-left{display:-webkit-flex;display:flex;align-items:center;gap:10px;}
+.hdr-logo{font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:0.1em;display:-webkit-flex;display:flex;align-items:center;gap:6px;font-weight:700;}
+.hdr-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);}
+.hdr-user{font-family:var(--mono);font-size:9px;color:var(--t3);background:var(--s2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;letter-spacing:0.06em;}
+.hdr-center{display:-webkit-flex;display:flex;gap:3px;align-items:center;}
+.pip{width:14px;height:4px;border-radius:2px;background:var(--border);transition:all 0.3s;}
+.pip.done{background:var(--green);}
+.pip.active{background:var(--acc);}
+.hdr-right{font-family:var(--mono);font-size:10px;color:var(--t3);text-align:right;}
+.hdr-right strong{color:var(--t1);font-size:13px;}
+
+/* ══ BRANCH BANNER ══ */
+.branch-banner{display:none;}
+.branch-banner.show{display:-webkit-flex;display:flex;align-items:center;gap:10px;}
+.branch-banner{background:linear-gradient(90deg,rgba(192,57,43,0.08),transparent);border-bottom:1px solid rgba(192,57,43,0.2);padding:7px 20px;font-size:12px;color:var(--red);font-family:var(--mono);letter-spacing:0.04em;position:relative;z-index:99;}
+.branch-banner.warn{background:linear-gradient(90deg,rgba(154,108,0,0.08),transparent);border-color:rgba(154,108,0,0.2);color:var(--yellow);}
+.bb-close{margin-left:auto;cursor:pointer;opacity:0.5;font-size:16px;line-height:1;}
+
+/* ══ 3-COLUMN LAYOUT ══ */
+.hidden{display:none!important;}
+.app{display:none;}
+.app.visible{display:-ms-grid;display:grid;grid-template-columns:1fr 240px 220px;gap:14px;max-width:1280px;margin:0 auto;padding:14px 16px 80px;}
+@media(max-width:1000px){.app.visible{grid-template-columns:1fr 220px;}.col-right{display:none;}}
+@media(max-width:700px){.app.visible{grid-template-columns:1fr;}.col-mid,.col-right{display:none;}}
+
+.col-main{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:12px;min-width:0;}
+.col-mid{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:12px;min-width:0;}
+.col-right{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:12px;min-width:0;}
+
+/* ══ CARDS ══ */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+.card-hdr{padding:8px 14px;background:var(--s2);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:0.12em;text-transform:uppercase;display:-webkit-flex;display:flex;align-items:center;gap:6px;}
+.card-body{padding:12px 14px;}
+
+/* ══ PATIENT BANNER ══ */
+.patient-banner{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:-webkit-flex;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--shadow);}
+.pb-avatar{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--acc3),rgba(26,95,212,0.15));border:1px solid var(--border2);display:-webkit-flex;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pb-info{flex:1;min-width:0;}
+.pb-name{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:3px;}
+.pb-tags{display:-webkit-flex;display:flex;flex-wrap:wrap;gap:4px;}
+.pb-tag{font-family:var(--mono);font-size:8px;letter-spacing:0.06em;padding:2px 7px;border-radius:20px;}
+.pb-tag.normal{background:rgba(10,124,82,0.08);color:var(--green);border:1px solid rgba(10,124,82,0.18);}
+.pb-tag.warn{background:var(--yelbg);color:var(--yellow);border:1px solid rgba(154,108,0,0.18);}
+.pb-tag.danger{background:var(--redbg);color:var(--red);border:1px solid rgba(192,57,43,0.18);}
+.pb-tag.info{background:var(--acc3);color:var(--acc);border:1px solid rgba(26,95,212,0.18);}
+.pb-stats{display:-webkit-flex;display:flex;gap:10px;flex-wrap:wrap;}
+.pb-stat{text-align:center;}
+.pb-stat-val{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--t1);line-height:1;}
+.pb-stat-val.w{color:var(--yellow);}
+.pb-stat-val.d{color:var(--red);}
+.pb-stat-key{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:0.05em;margin-top:2px;}
+
+/* ══ PHASE RIBBON ══ */
+.phase-ribbon{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:-webkit-flex;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);}
+.pr-phase{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:var(--acc);background:var(--acc3);border:1px solid rgba(26,95,212,0.18);padding:2px 10px;border-radius:20px;white-space:nowrap;}
+.pr-phase.branch-active{background:var(--redbg);border-color:rgba(192,57,43,0.25);color:var(--red);}
+.pr-title{font-size:14px;font-weight:700;color:var(--t1);flex:1;}
+.pr-step{font-family:var(--mono);font-size:10px;color:var(--t3);white-space:nowrap;}
+
+/* ══ BRANCH CONTEXT (분기 발동 시 상단 카드) ══ */
+.branch-context-card{display:none;background:#fff8f8;border:2px solid rgba(192,57,43,0.3);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);}
+.branch-context-card.show{display:block;}
+.bc-header{display:-webkit-flex;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.bc-icon{font-size:16px;}
+.bc-title{font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;letter-spacing:0.06em;}
+.bc-body{font-size:12.5px;color:var(--red);line-height:1.7;}
+.bc-compare{margin-top:8px;display:-ms-grid;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.bc-compare-item{background:rgba(192,57,43,0.05);border:1px solid rgba(192,57,43,0.15);border-radius:6px;padding:7px 10px;}
+.bc-compare-label{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:0.06em;margin-bottom:3px;}
+.bc-compare-val{font-family:var(--mono);font-size:12px;font-weight:700;}
+.bc-compare-val.normal{color:var(--green);}
+.bc-compare-val.danger{color:var(--red);}
+
+/* ══ VITALS ══ */
+/* ══ MONITOR-STYLE VITALS ══ */
+.vitals-bar{background:#0a1628;border:1px solid #1a3050;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.18);}
+.vb-top{padding:6px 14px;background:#061020;border-bottom:1px solid #1a3050;font-family:var(--mono);font-size:9px;color:#4a7aa0;letter-spacing:0.15em;text-transform:uppercase;display:-webkit-flex;display:flex;align-items:center;gap:8px;}
+.vb-pulse{width:7px;height:7px;border-radius:50%;background:#00e87a;box-shadow:0 0 8px #00e87a;-webkit-animation:pulse 1.5s infinite;animation:pulse 1.5s infinite;}
+@-webkit-keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px #00e87a;}50%{opacity:0.4;box-shadow:0 0 3px #00e87a;}}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px #00e87a;}50%{opacity:0.4;box-shadow:0 0 3px #00e87a;}}
+.vb-grid{display:-webkit-flex;display:flex;flex-wrap:wrap;background:#0a1628;}
+.vi{flex:1;min-width:80px;padding:8px 12px 10px;border-right:1px solid #162840;border-bottom:1px solid #162840;position:relative;transition:background 0.4s;}
+.vi:last-child{border-right:none;}
+.vi.flash{-webkit-animation:vf 1s ease;animation:vf 1s ease;}
+@-webkit-keyframes vf{0%{background:rgba(0,120,255,0.25);}100%{background:transparent;}}
+@keyframes vf{0%{background:rgba(0,120,255,0.25);}100%{background:transparent;}}
+.vi.flash-red{-webkit-animation:vfr 1s ease;animation:vfr 1s ease;}
+@-webkit-keyframes vfr{0%{background:rgba(255,60,60,0.3);}100%{background:transparent;}}
+@keyframes vfr{0%{background:rgba(255,60,60,0.3);}100%{background:transparent;}}
+.vi-l{font-family:var(--mono);font-size:8px;color:#4a7aa0;letter-spacing:0.08em;margin-bottom:3px;text-transform:uppercase;}
+.vi-v{font-family:var(--mono);font-size:16px;font-weight:700;line-height:1;letter-spacing:0.02em;}
+.vi-v.n{color:#00e87a;text-shadow:0 0 10px rgba(0,232,122,0.4);}
+.vi-v.w{color:#ffcc00;text-shadow:0 0 10px rgba(255,204,0,0.35);}
+.vi-v.d{color:#ff4040;text-shadow:0 0 10px rgba(255,64,64,0.4);}
+.vi-v.b{color:#a0c8f0;}
+.vi-u{font-size:8px;color:#3a6080;margin-top:2px;font-family:var(--mono);}
+.vi-delta{position:absolute;top:5px;right:7px;font-family:var(--mono);font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;}
+.vi-delta.up{color:#ff4040;background:rgba(255,64,64,0.15);}
+.vi-delta.down{color:#00e87a;background:rgba(0,232,122,0.12);}
+.vi-delta.up-bad{color:#ff4040;background:rgba(255,64,64,0.15);}
+.vi-delta.down-bad{color:#ff4040;background:rgba(255,64,64,0.15);}
+.vi-prev{font-family:var(--mono);font-size:8px;color:#3a6080;margin-top:1px;text-decoration:line-through;}
+
+/* ══ SCENARIO CARD ══ */
+.sc-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+
+/* 문제 전: 상황만 표시 */
+.sc-situation-bar{padding:10px 18px;background:var(--s2);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;display:-webkit-flex;display:flex;align-items:center;gap:6px;}
+.sc-situation-bar::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* narrative: context(답변 전) + teaching(답변 후) */
+.sc-context{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--s2);font-size:13px;color:var(--t1);line-height:1.75;}
+.sc-context-label{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;}
+.sc-narr{display:none;padding:14px 18px;border-bottom:1px solid var(--border);}
+.sc-narr.show{display:block;}
+.sc-narr-title{font-family:var(--mono);font-size:9px;color:var(--acc);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.sc-text{font-size:13px;color:var(--t1);line-height:1.85;}
+.sc-text strong{color:var(--gold);}
+.sc-text em{color:var(--cyan);font-style:normal;}
+.sc-text .tag{font-family:var(--mono);font-size:10px;background:var(--acc3);border:1px solid rgba(26,95,212,0.15);color:var(--acc);padding:1px 6px;border-radius:4px;}
+.abox{margin:10px 0;padding:10px 13px;border-radius:7px;border-left:3px solid var(--acc);background:rgba(26,95,212,0.05);font-size:12.5px;color:var(--t2);}
+.abox.w{border-left-color:var(--yellow);background:var(--yelbg);}
+.abox.d{border-left-color:var(--red);background:var(--redbg);}
+.abox.g{border-left-color:var(--green);background:var(--greenbg);}
+.abox-label{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;}
+
+/* 질문 */
+.sc-q{padding:14px 18px;background:var(--s2);border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--t1);line-height:1.5;border-left:3px solid var(--acc);}
+
+/* ══ CHOICES ══ */
+.ch-wrap{padding:14px 18px;border-bottom:1px solid var(--border);}
+.ch-hdr{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;display:-webkit-flex;display:flex;align-items:center;justify-content:space-between;}
+.hint-btn{font-family:var(--mono);font-size:9px;background:var(--yelbg);border:1px solid rgba(154,108,0,0.2);color:var(--yellow);padding:3px 10px;border-radius:20px;cursor:pointer;transition:all 0.2s;letter-spacing:0.06em;}
+.hint-btn:hover{background:rgba(154,108,0,0.15);}
+.hint-btn:disabled{opacity:0.3;cursor:default;}
+.hint-box{display:none;margin-bottom:10px;background:var(--yelbg);border:1px solid rgba(154,108,0,0.2);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--yellow);}
+.hint-box.show{display:block;}
+.choices{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:7px;}
+.ch-btn{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--t1);font-family:var(--sans);font-size:13px;cursor:pointer;text-align:left;display:-webkit-flex;display:flex;align-items:flex-start;gap:11px;transition:all 0.18s;line-height:1.55;width:100%;box-shadow:var(--shadow);}
+.ch-btn:hover:not(:disabled){border-color:var(--acc);background:var(--acc3);transform:translateX(3px);}
+.ch-btn:disabled{cursor:default;transform:none;}
+.ch-btn.correct{border-color:var(--green)!important;background:var(--greenbg)!important;}
+.ch-btn.wrong{border-color:var(--red)!important;background:var(--redbg)!important;}
+.ch-btn.dim{opacity:0.35;}
+.ch-key{font-family:var(--mono);font-size:10px;border:1px solid var(--border2);border-radius:4px;padding:2px 6px;color:var(--t3);flex-shrink:0;min-width:22px;text-align:center;margin-top:1px;transition:all 0.18s;background:var(--s2);}
+.ch-btn.correct .ch-key{border-color:var(--green);color:var(--green);background:var(--greenbg);}
+.ch-btn.wrong .ch-key{border-color:var(--red);color:var(--red);background:var(--redbg);}
+.ch-branch{display:none;}/* 선택지에서 분기 배지 숨김 */
+.sc-q-branch{display:inline-block;font-family:var(--mono);font-size:9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.2);color:var(--red);padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle;}
+
+/* ══ FEEDBACK ══ */
+.fb-wrap{display:none;padding:16px 18px;border-bottom:1px solid var(--border);}
+.fb-wrap.show{display:block;}
+.fb-hdr{display:-webkit-flex;display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.fb-badge{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;padding:3px 12px;border-radius:20px;font-weight:700;}
+.fb-badge.ok{background:var(--greenbg);color:var(--green);border:1px solid rgba(10,124,82,0.25);}
+.fb-badge.ng{background:var(--redbg);color:var(--red);border:1px solid rgba(192,57,43,0.2);}
+.fb-badge.branch{background:var(--redbg);color:var(--red);border:1px solid rgba(192,57,43,0.25);}
+.fb-text{font-size:13px;color:var(--t1);line-height:1.8;}
+.fb-text strong{color:var(--gold);}
+.fb-text .key{font-family:var(--mono);font-size:11px;background:var(--s2);border:1px solid var(--border2);padding:1px 6px;border-radius:4px;color:var(--cyan);}
+.fb-branch-consequence{margin-top:10px;background:#fff0f0;border:1px solid rgba(192,57,43,0.2);border-radius:8px;padding:11px 13px;font-size:12px;color:var(--red);}
+.fb-branch-consequence .bc-title{font-family:var(--mono);font-size:8px;color:var(--red);letter-spacing:0.1em;margin-bottom:5px;text-transform:uppercase;}
+.retry-btn{display:none;margin-top:10px;background:transparent;border:1px solid var(--border2);border-radius:7px;padding:7px 14px;color:var(--t2);font-family:var(--mono);font-size:10px;cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;}
+.retry-btn.show{display:-webkit-inline-flex;display:inline-flex;align-items:center;gap:6px;}
+.retry-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+
+/* ══ NAV ══ */
+.sc-nav{padding:12px 18px;display:-webkit-flex;display:flex;align-items:center;justify-content:space-between;}
+.sc-nav-left{font-family:var(--mono);font-size:10px;color:var(--t3);}
+.next-btn{display:none;background:linear-gradient(135deg,var(--acc),var(--acc2));border:none;border-radius:8px;padding:9px 20px;color:white;cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.07em;transition:all 0.2s;}
+.next-btn.show{display:-webkit-flex;display:flex;align-items:center;gap:7px;}
+.next-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,95,212,0.3);}
+.next-btn.branch-next{background:linear-gradient(135deg,var(--red),var(--red2));}
+
+/* ══ MIDDLE COL: ANESTHESIA RECORD + REF ══ */
+.ar-grid{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:4px;}
+.ar-row{display:-webkit-flex;display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.ar-row:last-child{border-bottom:none;}
+.ar-k{color:var(--t3);font-family:var(--mono);font-size:9px;}
+.ar-v{color:var(--t1);font-weight:700;font-family:var(--mono);font-size:10px;}
+.ar-v.w{color:var(--yellow);}
+.ar-v.d{color:var(--red);}
+.ar-v.g{color:var(--green);}
+.ref-list{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:5px;}
+.ref-item{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;}
+.ref-k{font-family:var(--mono);font-size:8px;color:var(--gold);letter-spacing:0.05em;margin-bottom:2px;}
+.ref-v{font-size:11px;color:var(--t2);line-height:1.45;}
+
+/* ══ RIGHT COL: SCORE + BRANCH + PROGRESS ══ */
+.score-row{display:-webkit-flex;display:flex;align-items:baseline;gap:5px;margin-bottom:7px;}
+.sc-big{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--acc);line-height:1;}
+.sc-den{font-family:var(--mono);font-size:12px;color:var(--t3);}
+.sc-pct{font-family:var(--mono);font-size:11px;color:var(--t2);margin-left:auto;}
+.pb-bar-wrap{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.pb-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--green));border-radius:2px;transition:width 0.5s ease;}
+.sc-sub{font-size:10px;color:var(--t3);}
+
+.branch-state{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:5px;}
+.bs-item{display:-webkit-flex;display:flex;align-items:flex-start;gap:7px;padding:6px 8px;border-radius:6px;font-size:11px;line-height:1.4;}
+.bs-item.safe{background:var(--greenbg);color:var(--green);}
+.bs-item.crit{background:var(--redbg);color:var(--red);}
+.bs-item.neutral{background:var(--s2);color:var(--t3);}
+.bs-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.bs-item.safe .bs-dot{background:var(--green);}
+.bs-item.crit .bs-dot{background:var(--red);}
+.bs-item.neutral .bs-dot{background:var(--t4);}
+
+.pp-list{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:1px;}
+.pp-group-label{font-family:var(--mono);font-size:7px;color:var(--t4);letter-spacing:0.1em;text-transform:uppercase;padding:5px 6px 2px;}
+.pp-item{display:-webkit-flex;display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;transition:all 0.15s;}
+.pp-item.active{background:var(--acc3);}
+.pp-item.done{opacity:0.6;}
+.pp-item.pending{opacity:0.3;}
+.pp-dot{width:14px;height:14px;border-radius:50%;display:-webkit-flex;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:7px;font-weight:700;flex-shrink:0;}
+.pp-item.active .pp-dot{background:var(--acc);color:white;}
+.pp-item.done .pp-dot{background:var(--green);color:white;font-size:9px;}
+.pp-item.pending .pp-dot{background:var(--border2);color:var(--t3);}
+.pp-text{font-size:10px;color:var(--t2);line-height:1.3;}
+.pp-item.active .pp-text{color:var(--t1);font-weight:600;}
+
+/* ══ COMPLETE ══ */
+#completeScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:400;background:var(--bg);display:none;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;-webkit-flex-direction:column;flex-direction:column;padding:32px;text-align:center;}
+#completeScreen.show{display:-webkit-flex;display:flex;}
+.comp-user{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:0.15em;margin-bottom:20px;}
+.comp-score{font-family:var(--mono);font-size:clamp(48px,9vw,76px);font-weight:700;background:linear-gradient(135deg,var(--acc),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:4px;}
+.comp-grade{font-size:17px;font-weight:700;color:var(--t1);margin-bottom:6px;}
+.comp-msg{font-size:13px;color:var(--t2);max-width:480px;line-height:1.8;margin-bottom:20px;}
+.branch-summary{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:18px;max-width:500px;width:100%;margin-bottom:20px;text-align:left;box-shadow:var(--shadow);}
+.bs-title{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;}
+.bs-list{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;gap:7px;}
+.bs-entry{display:-webkit-flex;display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.6;}
+.bs-entry-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.bs-entry-dot.ok{background:var(--green);}
+.bs-entry-dot.ng{background:var(--red);}
+.bs-entry-text{color:var(--t2);}
+.bs-entry-text strong{color:var(--t1);}
+.comp-btns{display:-webkit-flex;display:flex;gap:10px;}
+.comp-restart{padding:10px 26px;background:var(--s1);border:1px solid var(--border2);border-radius:8px;color:var(--t1);font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.07em;transition:all 0.2s;text-transform:uppercase;box-shadow:var(--shadow);}
+.comp-restart:hover{border-color:var(--acc);background:var(--acc3);color:var(--acc);}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="login-logo-mark">Chosun Univ. Hospital · Anesthesiology</div>
+      <div class="login-title">간이식 마취<br>시뮬레이터</div>
+      <div class="login-sub" style="margin-top:5px;">LT ANESTHESIA SIMULATION SYSTEM · v5.0</div>
+    </div>
+    <div class="login-card">
+      <div class="login-section-label">참여자 정보</div>
+      <div class="login-grid">
+        <div class="form-group">
+          <label class="form-label">기관</label>
+          <select class="form-select" id="fInstitution" disabled style="opacity:0.65;cursor:default;">
+            <option value="조선대병원 마취통증의학과" selected>조선대병원 마취통증의학과</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">연차</label>
+          <select class="form-select" id="fYear">
+            <option value="">선택하세요</option>
+            <option>레지던트 1년차</option>
+            <option>레지던트 2년차</option>
+            <option>레지던트 3년차</option>
+            <option>레지던트 4년차</option>
+            <option>기타 (전임의/전문의 포함)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">이름</label>
+          <input class="form-input" id="fName" type="text" placeholder="홍길동">
+        </div>
+        <div class="form-group">
+          <label class="form-label">이메일</label>
+          <input class="form-input" id="fEmail" type="email" placeholder="example@chosun.ac.kr">
+        </div>
+      </div>
+      <div class="login-divider"></div>
+      <div class="login-section-label">이번 케이스 미리보기</div>
+      <div class="case-preview">
+        <div class="cp-label">🎲 랜덤 케이스</div>
+        <div class="cp-grid" id="casePreview"></div>
+      </div>
+      <div class="branch-info">
+        <span style="font-size:15px;flex-shrink:0;">⚡</span>
+        <span>이번 시뮬레이션에는 <strong>5개의 분기 포인트</strong>가 있습니다. 잘못된 선택은 이후 단계에서 더 심각한 상황을 만들어냅니다. 매 시작마다 환자와 상황이 달라집니다.</span>
+      </div>
+      <button class="login-btn" id="loginBtn">▶ 시뮬레이션 시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BRANCH BANNER ══ -->
+<div class="branch-banner" id="branchBanner">
+  <span style="font-size:15px;">⚠</span>
+  <span id="branchBannerText"></span>
+  <span class="bb-close" id="bbClose">✕</span>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header class="hdr hidden" id="appHdr">
+  <div class="hdr-left">
+    <div class="hdr-logo"><div class="hdr-dot"></div>LT·SIM</div>
+    <div class="hdr-user" id="hdrUser"></div>
+  </div>
+  <div class="hdr-center" id="phasePips"></div>
+  <div class="hdr-right"><strong id="hdrStep">1</strong><span style="color:var(--t3)">/30</span></div>
+</header>
+
+<!-- ══ 3-COLUMN APP ══ -->
+<div class="app hidden" id="appBody">
+
+  <!-- LEFT: MAIN -->
+  <div class="col-main">
+    <div class="patient-banner" id="patientBanner"></div>
+    <div class="phase-ribbon">
+      <span class="pr-phase" id="prPhase"></span>
+      <span class="pr-title" id="prTitle"></span>
+      <span class="pr-step" id="prStep"></span>
+    </div>
+    <!-- 분기 컨텍스트 카드 -->
+    <div class="branch-context-card" id="branchContextCard">
+      <div class="bc-header">
+        <span class="bc-icon">⚡</span>
+        <span class="bc-title" id="bcTitle"></span>
+      </div>
+      <div class="bc-body" id="bcBody"></div>
+      <div class="bc-compare" id="bcCompare"></div>
+    </div>
+    <div class="vitals-bar">
+      <div class="vb-top"><div class="vb-pulse"></div>REAL-TIME VITALS</div>
+      <div class="vb-grid" id="vbGrid"></div>
+    </div>
+    <div class="sc-card" id="scCard"></div>
+  </div>
+
+  <!-- MID: 마취기록지 + 핵심목표값 -->
+  <div class="col-mid">
+    <div class="card">
+      <div class="card-hdr">🗒 마취 기록지</div>
+      <div class="card-body">
+        <div class="ar-grid">
+          <div class="ar-row"><span class="ar-k">마취 시작</span><span class="ar-v" id="ar-start">—</span></div>
+          <div class="ar-row"><span class="ar-k">총 pRBC</span><span class="ar-v w" id="ar-prbc">0 U</span></div>
+          <div class="ar-row"><span class="ar-k">총 FFP</span><span class="ar-v w" id="ar-ffp">0 U</span></div>
+          <div class="ar-row"><span class="ar-k">소변량</span><span class="ar-v" id="ar-urine">0 mL</span></div>
+          <div class="ar-row"><span class="ar-k">K⁺ 보충</span><span class="ar-v" id="ar-k">미시행</span></div>
+          <div class="ar-row"><span class="ar-k">Ca²⁺ 교정</span><span class="ar-v" id="ar-ca">미시행</span></div>
+          <div class="ar-row"><span class="ar-k">Epinephrine</span><span class="ar-v" id="ar-epi">미사용</span></div>
+          <div class="ar-row"><span class="ar-k">PRS 발생</span><span class="ar-v" id="ar-prs">—</span></div>
+          <div class="ar-row"><span class="ar-k">현재 단계</span><span class="ar-v g" id="ar-phase">수술 전</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">📌 핵심 목표값</div>
+      <div class="card-body">
+        <div class="ref-list">
+          <div class="ref-item"><div class="ref-k">MAP 목표</div><div class="ref-v">≥70 mmHg (수축기 ≥90)</div></div>
+          <div class="ref-item"><div class="ref-k">CVP 재관류 후</div><div class="ref-v">≤10 mmHg</div></div>
+          <div class="ref-item"><div class="ref-k">Hct 목표</div><div class="ref-v">26–28%</div></div>
+          <div class="ref-item"><div class="ref-k">Ca²⁺</div><div class="ref-v">≥0.8 mmol/L</div></div>
+          <div class="ref-item"><div class="ref-k">K⁺ 재관류 전</div><div class="ref-v">보충 금지</div></div>
+          <div class="ref-item"><div class="ref-k">혈당</div><div class="ref-v">100–250 mg/dL</div></div>
+          <div class="ref-item"><div class="ref-k">소변량</div><div class="ref-v">≥0.5 mL/kg/h</div></div>
+          <div class="ref-item"><div class="ref-k">TEG: CT</div><div class="ref-v">&lt;15분 → FFP</div></div>
+          <div class="ref-item"><div class="ref-k">TEG: Alpha</div><div class="ref-v">&lt;40° → Cryo</div></div>
+          <div class="ref-item"><div class="ref-k">TEG: MA</div><div class="ref-v">&lt;40mm → Plt</div></div>
+          <div class="ref-item"><div class="ref-k">TEG: LY30</div><div class="ref-v">&gt;7.5% → Transamine</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: 점수 + 분기 + 단계진행 -->
+  <div class="col-right">
+    <div class="card">
+      <div class="card-hdr">📊 점수</div>
+      <div class="card-body">
+        <div class="score-row">
+          <div class="sc-big" id="sbScore">0</div>
+          <div class="sc-den" id="sbDen">/ 0</div>
+          <div class="sc-pct" id="sbPct">—</div>
+        </div>
+        <div class="pb-bar-wrap"><div class="pb-bar" id="progBar" style="width:0%"></div></div>
+        <div class="sc-sub" id="sbSub">시작하세요</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">⚡ 분기 상태</div>
+      <div class="card-body">
+        <div class="branch-state" id="branchState"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">📋 단계 진행</div>
+      <div class="card-body" style="max-height:320px;overflow-y:auto;">
+        <div class="pp-list" id="ppList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COMPLETE ══ -->
+<div id="completeScreen">
+  <div class="comp-user" id="compUser"></div>
+  <div class="comp-score" id="compScore"></div>
+  <div class="comp-grade" id="compGrade"></div>
+  <div class="comp-msg" id="compMsg"></div>
+  <div class="branch-summary">
+    <div class="bs-title">분기 포인트 결과 요약</div>
+    <div class="bs-list" id="bsSummary"></div>
+  </div>
+  <div class="comp-btns">
+    <div id="emailStatus" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-bottom:14px;min-height:20px;"></div>
+    <button class="comp-restart" id="compRestart">↺ 새 케이스로 다시</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════
+const rnd  = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pickArr = arr => arr[Math.floor(Math.random()*arr.length)];
+const pct  = (a,b) => Math.random() < (a/b);
+
+// ═══════════════════════════════════════════════════════
+//  SHUFFLE — 선택지 랜덤 배치
+// ═══════════════════════════════════════════════════════
+function shuffleChoices(choices) {
+  // correct 위치를 랜덤하게 섞되, branchEffect도 함께 이동
+  const arr = choices.map((c,i) => ({...c, _origIdx:i}));
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// ═══════════════════════════════════════════════════════
+//  PATIENT GENERATOR
+// ═══════════════════════════════════════════════════════
+function generatePatient() {
+  const diseases = ['HBV 간경변','HCV 간경변','알코올성 간경변','NASH 간경변'];
+  const disease = pickArr(diseases);
+  const childClass = pct(3,10) ? 'B' : 'C';
+  const hasPPH = pct(3,10);
+  const hasHRS = pct(25,100);
+  const Na = rnd(118,138);
+  const MELD = rnd(18,38);
+  const age = rnd(38,68);
+  const gender = pct(6,10) ? '남' : '여';
+  const INR = parseFloat((1.8+Math.random()*1.2).toFixed(1));
+  const Plt = rnd(38,85);
+  const Hb  = parseFloat((7.5+Math.random()*2.5).toFixed(1));
+  const Cr  = parseFloat((0.9+Math.random()*0.8).toFixed(1));
+  const BNP = rnd(85,280);
+  const peakRVP = hasPPH ? rnd(30,44) : rnd(18,28);
+  const K  = parseFloat((3.2+Math.random()*1.0).toFixed(1));
+  const Ca = parseFloat((0.88+Math.random()*0.24).toFixed(2));
+  const surnames = ['김','이','박','최','정','강','조','윤'];
+  const name = pickArr(surnames)+'○○';
+  return { disease,childClass,hasPPH,hasHRS,Na,MELD,age,gender,
+           INR,Plt,Hb,Cr,BNP,peakRVP,K,Ca,name,
+           pphGrade:hasPPH?(peakRVP>=40?'moderate':'mild'):'none' };
+}
+
+// ═══════════════════════════════════════════════════════
+//  BRANCH STATE
+// ═══════════════════════════════════════════════════════
+const BRANCH_KEYS   = ['kSupplemented','caMissed','cvpOverload','phenylUsed','urineIgnored'];
+const BRANCH_LABELS = ['K⁺ 재관류 전 보충','Ca²⁺ 무간기 미교정','CVP 과다','Phenylephrine 단독 선택(CO저하+서맥 상황)','소변량 감소 미대처'];
+const BRANCH_CONSEQUENCE = [
+  '재관류 시 K⁺ 6.8 위기 발생',
+  'PRS 심각도 증가 (MAP↓↓, HR↓↓)',
+  '재관류 후 ST 상승 필수 발생',
+  '심정지 위기 분기',
+  '급성신부전 진행'
+];
+// 분기 발동 시 vitals 비교값 (정상 → 분기)
+const BRANCH_VITALS_COMPARE = [
+  {param:'K⁺', normal:'4.4 mEq/L', danger:'6.8 mEq/L'},
+  {param:'MAP(PRS 시)', normal:'MAP 42–52', danger:'MAP 32–42'},
+  {param:'CVP', normal:'CVP 9–12', danger:'CVP 20–26'},
+  {param:'MAP(Phenyl)', normal:'MAP 회복', danger:'MAP 회복 지연'},
+  {param:'소변량', normal:'0.9 mL/kg/h', danger:'0.1 mL/kg/h'},
+];
+
+let bState = {};
+function initBranch() {
+  bState = {kSupplemented:false,caMissed:false,cvpOverload:false,phenylUsed:false,urineIgnored:false};
+}
+function setBranch(key,val) { bState[key]=val; updateBranchUI(); }
+function branchTriggered(key) { return bState[key]===true; }
+
+function updateBranchUI() {
+  const c = document.getElementById('branchState');
+  if (!c) return;
+  c.innerHTML = BRANCH_KEYS.map((k,i)=>{
+    const on = bState[k];
+    const cls = on ? 'crit' : 'neutral';
+    return `<div class="bs-item ${cls}">
+      <div class="bs-dot"></div>
+      <div>${BRANCH_LABELS[i]}: ${on?'<strong>⚠ 발동</strong>':'안전'}</div>
+    </div>`;
+  }).join('');
+  updatePips();
+}
+
+function showBranchBanner(text, isCrit=true) {
+  const el = document.getElementById('branchBanner');
+  el.className = 'branch-banner show'+(isCrit?'':' warn');
+  document.getElementById('branchBannerText').textContent = text;
+  setTimeout(()=>el.classList.remove('show'), 8000);
+}
+
+// 분기 컨텍스트 카드 표시
+function showBranchContext(branchKey) {
+  const idx2 = BRANCH_KEYS.indexOf(branchKey);
+  if (idx2 < 0) return;
+  const card = document.getElementById('branchContextCard');
+  document.getElementById('bcTitle').textContent = `이전 선택의 결과: ${BRANCH_LABELS[idx2]} 발동`;
+  document.getElementById('bcBody').textContent = `→ ${BRANCH_CONSEQUENCE[idx2]}`;
+  const cmp = BRANCH_VITALS_COMPARE[idx2];
+  document.getElementById('bcCompare').innerHTML = `
+    <div class="bc-compare-item">
+      <div class="bc-compare-label">정상 선택 시</div>
+      <div class="bc-compare-val normal">${cmp.normal}</div>
+    </div>
+    <div class="bc-compare-item">
+      <div class="bc-compare-label">현재 (분기 발동)</div>
+      <div class="bc-compare-val danger">${cmp.danger}</div>
+    </div>`;
+  card.classList.add('show');
+}
+function hideBranchContext() {
+  document.getElementById('branchContextCard').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════
+//  STEP GENERATOR
+// ═══════════════════════════════════════════════════════
+function generateSteps(pt) {
+  const pphNote = pt.hasPPH ? `<div class="abox w"><div class="abox-label">⚠ PPH 동반</div>Peak RVP ${pt.peakRVP} mmHg · ${pt.pphGrade} grade. 재관류 시 PAP 관리 주의.</div>` : '';
+  const hrsNote = pt.hasHRS ? `<div class="abox d"><div class="abox-label">⚠ HRS 동반</div>신기능 저하. 소변량 및 신보호에 특히 주의.</div>` : '';
+  const naWarn  = pt.Na<125 ? `<div class="abox d"><div class="abox-label">🔴 중증 저나트륨혈증</div>Na ${pt.Na} — 8시간 내 16 mEq/L 이상 증가 절대 금지.</div>`
+                : pt.Na<130 ? `<div class="abox w"><div class="abox-label">⚠ 저나트륨혈증</div>Na ${pt.Na} — 교정 속도 주의.</div>` : '';
+
+  return [
+  // ── 1
+  { phase:'수술 전 평가',phaseIdx:0,
+    title:'마취 전 방문 — 환자 초기 평가',
+    situation:'마취 전 방문',
+    vitals:[{l:'BP',v:`${rnd(112,128)}/${rnd(68,80)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(80,96)}`,u:'bpm',c:'n'},{l:'SpO₂',v:`${rnd(93,97)}%`,u:'',c:pt.hasHRS?'w':'n'},{l:'Na',v:`${pt.Na}`,u:'mEq/L',c:pt.Na<125?'d':pt.Na<130?'w':'n'},{l:'INR',v:`${pt.INR}`,u:'',c:pt.INR>2.5?'d':'w'},{l:'MELD',v:`${pt.MELD}`,u:'',c:pt.MELD>25?'d':'w'}],
+    context:`${pt.name} · ${pt.age}세 ${pt.gender} · ${pt.disease} (Child ${pt.childClass}) · MELD ${pt.MELD}점. Lab: Na ${pt.Na} / INR ${pt.INR} / Plt ${pt.Plt}K / Hb ${pt.Hb} / Cr ${pt.Cr}. 심초음파 Peak RVP ${pt.peakRVP} mmHg${pt.hasPPH?` (PPH ${pt.pphGrade})`:''}`,
+    teaching:`${naWarn}${pphNote}${hrsNote}마취 전 방문 핵심: 의식상태·소변량·복수 직접 확인. Na ${pt.Na} → 8시간 내 16 mEq/L 이상 증가 금지 계획. PPH: Peak RVP ≥45 시 PA catheter, mean PAP ≥45 시 수술 연기.`,
+    question:'마취 전 방문에서 가장 먼저 확인·계획해야 할 것은?',
+    hint:`Na ${pt.Na}의 hyponatremia와 INR ${pt.INR}에 주목하세요.`,
+    choices:[
+      {t:'의식상태·소변량·복수 직접 확인 + Na 교정 속도 계획 + 다음날 presentation 준비.',ok:true},
+      {t:'INR이 높으므로 즉시 FFP를 투여하여 교정한다.',ok:false},
+      {t:'BNP가 높으므로 즉시 심장내과 협진 후 수술 연기.',ok:false},
+      {t:'Platelet이 낮으므로 수술 전 혈소판 수혈부터 시행한다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 마취 전 방문 핵심: ① 의식상태·소변량·복수 직접 확인 ② Na ${pt.Na}는 ${pt.Na<125?'중증':'경도'} hyponatremia → 8시간 내 16 mEq/L 이상 증가 금지 계획 ③ Peak RVP ${pt.peakRVP}mmHg → ${pt.peakRVP>=45?'PA catheter 삽입 기준':pt.hasPPH?'Mild PPH — sildenafil 준비':'정상 범위'}.`,ng:`❌ FFP 예방 투여·혈소판 수혈·즉각 수술 연기는 이 시점의 우선순위가 아닙니다. 직접 확인과 Na 교정 계획이 핵심입니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 2
+  { phase:'수술 전 평가',phaseIdx:0,
+    title:'심초음파 판독 — PPH 위험도 분류',
+    situation:'수술 전 평가',
+    vitals:[{l:'EF',v:'60%',u:'',c:'n'},{l:'Peak RVP',v:`${pt.peakRVP}`,u:'mmHg',c:pt.peakRVP>=40?'d':pt.peakRVP>=30?'w':'n'},{l:'HR',v:`${rnd(80,92)}`,u:'bpm',c:'n'},{l:'SpO₂',v:`${rnd(93,97)}%`,u:'',c:'n'},{l:'MELD',v:`${pt.MELD}`,u:'',c:'w'},{l:'Child',v:pt.childClass,u:'class',c:'w'}],
+    context:`Peak RV pressure ${pt.peakRVP} mmHg${pt.hasPPH?` (PPH ${pt.pphGrade})`:''}. 추정 mean PAP ≈ ${Math.round(pt.peakRVP*0.6+2)} mmHg.`,
+    teaching:`PPH 분류: Mild 25–35 / Moderate 35–45 / Severe >45 mmHg (mean PAP). PA catheter 기준: Peak RVP ≥45 mmHg. 수술 연기 기준: mean PAP ≥45 mmHg. Sildenafil 25mg L-tube 투여 준비.`,
+    question:`Peak RVP ${pt.peakRVP} mmHg. 이 환자의 처치로 가장 적절한 것은?`,
+    hint:`PA catheter 기준: Peak RVP ≥45mmHg. 수술 연기: mean PAP ≥45mmHg.`,
+    choices: pt.peakRVP>=45 ? [
+      {t:'PA catheter 삽입하여 정확한 혈역학 측정 후 수술 여부 결정.',ok:true},
+      {t:'Peak RVP 45 이상이지만 일단 수술 진행.',ok:false},
+      {t:'Sildenafil 25mg만 처방하고 PA catheter 없이 진행.',ok:false},
+      {t:'즉시 수술 취소 후 내과 전과.',ok:false}
+    ] : [
+      {t:`수술 진행 가능. ${pt.hasPPH?'Sildenafil 25mg 처방 준비 + PAP 감시.':'표준 모니터링으로 진행.'}`,ok:true},
+      {t:'Peak RVP가 있으므로 PA catheter를 반드시 삽입한다.',ok:false},
+      {t:'PPH 소견이 있으므로 수술 연기 후 vasodilator 치료.',ok:false},
+      {t:'심초음파 소견 무시하고 표준 모니터링만 적용.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> PA catheter 기준: Peak RVP ≥45mmHg. 수술 연기: mean PAP ≥45mmHg. 이 환자 Peak RVP ${pt.peakRVP}mmHg → ${pt.peakRVP>=45?'PA catheter 필요':'수술 진행 가능'}. 추정 mean PAP ${Math.round(pt.peakRVP*0.6+2)}mmHg.`,ng:`❌ PA catheter 기준(≥45mmHg)과 수술 연기 기준(mean PAP ≥45)을 구분해야 합니다. 현재 Peak RVP ${pt.peakRVP}mmHg.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 3
+  { phase:'수술 전 평가',phaseIdx:0,
+    title:'혈액·약제 준비',
+    situation:'수술 당일 준비',
+    vitals:[{l:'Hb',v:`${pt.Hb}`,u:'g/dL',c:pt.Hb<8?'d':'w'},{l:'Hct',v:`${Math.round(pt.Hb*3)}%`,u:'',c:'w'},{l:'Plt',v:`${pt.Plt}K`,u:'/mm³',c:pt.Plt<50?'d':'w'},{l:'INR',v:`${pt.INR}`,u:'',c:'w'},{l:'Cr',v:`${pt.Cr}`,u:'mg/dL',c:pt.Cr>1.5?'w':'n'},{l:'Na',v:`${pt.Na}`,u:'mEq/L',c:pt.Na<125?'d':'w'}],
+    context:`기본 혈액: pRBC 6U + FFP 10U. Cr ${pt.Cr} mg/dL.`,
+    teaching:`Quinton catheter 기준: Cr > 1.6 mg/dL → ${pt.Cr>1.6?'이 환자는 준비 필요':'이 환자는 불필요'}. 무간기: Ganciclovir 5mg/kg (1h IV) + HepaBIG. 재관류 직전: Solumedrol 10mg/kg. 재관류 후: PGE1 10μg/h. 간동맥 문합 후: 저분자 heparin 20 IU/kg.`,
+    question:`이 환자(Cr ${pt.Cr})에서 추가로 준비할 카테터로 옳은 것은?`,
+    hint:`Quinton catheter 기준: Cr > 1.6 mg/dL.`,
+    choices: pt.Cr>1.6 ? [
+      {t:'Quinton catheter (Lt. 또는 Rt. SCV) 추가 준비 — CVVHD 대비.',ok:true},
+      {t:'Cr이 높아도 수술 중 악화 시에만 삽입.',ok:false},
+      {t:'Cr 상승 시에는 수술을 연기해야 한다.',ok:false},
+      {t:'CVVHD는 간이식에서 불필요하다.',ok:false}
+    ] : [
+      {t:`Cr ${pt.Cr} — Quinton catheter 기준 미충족. 표준 라인 구성으로 진행.`,ok:true},
+      {t:'모든 간이식 환자는 Quinton catheter를 삽입해야 한다.',ok:false},
+      {t:'Cr 낮으면 Swan-Ganz도 생략 가능.',ok:false},
+      {t:'혈액 준비는 pRBC 2U면 충분.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> Quinton catheter 기준: Cr > 1.6 mg/dL. 이 환자 Cr ${pt.Cr} → ${pt.Cr>1.6?'기준 초과 → 준비 필요':'기준 이하 → 불필요'}.`,ng:`❌ Quinton catheter 삽입 기준은 Cr > 1.6 mg/dL입니다.`},
+    branchChoiceIdx:null,arUpdate:{'ar-start':'준비 중'}},
+
+  // ── 4
+  { phase:'마취 준비',phaseIdx:1,
+    title:'모니터링 설치 — 이중 동맥압',
+    situation:'수술실 입실',
+    vitals:[{l:'BP',v:`${rnd(112,126)}/${rnd(68,78)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(82,94)}`,u:'bpm',c:'n'},{l:'SpO₂',v:`${rnd(93,97)}%`,u:'',c:'n'},{l:'CVP',v:'—',u:'',c:'b'},{l:'PAP',v:'—',u:'',c:'b'},{l:'CO',v:'—',u:'L/min',c:'b'}],
+    context:`이중 동맥압(RAP + FAP) + Swan-Ganz + Vigilance/Vigileo 모니터링 설치 예정.`,
+    teaching:`RAP (Rt. radial a): 채혈 + 혈압. FAP (Rt. femoral a): 중요 장기 관류압 지표 — 무간기에서 RAP와 차이 발생. 평균동맥압 기준 판단. FVP (femoral v): IVC pressure 감시.`,
+    question:'두 개의 동맥압 라인(RAP + FAP)이 모두 필요한 이유로 가장 정확한 것은?',
+    hint:'무간기에서 FAP와 RAP 차이가 커집니다.',
+    choices:[
+      {t:'무간기·재관류 시 FAP와 RAP 차이가 커지며, FAP가 중요 장기 관류압을 더 정확히 반영한다.',ok:true},
+      {t:'한쪽이 막혔을 때 대비용으로 두 개를 넣는다.',ok:false},
+      {t:'FAP는 혈압, RAP는 수액 주입 전용이다.',ok:false},
+      {t:'차이가 없으면 편측만 사용해도 된다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 무간기에서 IVC clamp로 인해 FAP와 RAP 차이가 발생합니다. FAP(대퇴동맥)는 복강 내 장기·신장의 관류압을 더 잘 반영합니다. 평균동맥압 기준으로 판단합니다.`,ng:`❌ FAP와 RAP는 무간기에서 차이가 발생합니다. FAP가 중요 장기 관류압 지표로 필수입니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 5
+  { phase:'마취 준비',phaseIdx:1,
+    title:'중심정맥 확보 — IJV 구성',
+    situation:'혈관 확보',
+    vitals:[{l:'BP',v:`${rnd(110,122)}/${rnd(66,76)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(82,94)}`,u:'bpm',c:'n'},{l:'SpO₂',v:`${rnd(93,96)}%`,u:'',c:'n'},{l:'CVP',v:'—',u:'',c:'b'},{l:'Na',v:`${pt.Na}`,u:'mEq/L',c:pt.Na<130?'d':'w'},{l:'K',v:`${pt.K}`,u:'mEq/L',c:'n'}],
+    context:`Rt. IJV: Swan-Ganz + 12Fr large-bore 삽입 예정. 의식 저하 환자는 IJV 금기.`,
+    teaching:`Swan-Ganz (AVA 9Fr 3-lumen): CVP·PAP·CO·SvO₂ + RIS route + bolus 경로. 12Fr large-bore: Biopump 연결 + RIS line. 각 역할이 다르므로 둘 다 필요. Biopump 사용 시 모든 pump line을 large-bore에 연결.`,
+    question:'Rt. IJV에서 Swan-Ganz와 12Fr large-bore catheter를 모두 삽입하는 이유로 옳은 것은?',
+    hint:'12Fr large-bore는 Biopump 연결을 위한 대구경 경로가 필요하기 때문입니다.',
+    choices:[
+      {t:'Swan-Ganz(CVP·PAP·CO 감시) + 12Fr(Biopump 연결 및 RIS 경로) — 각각 다른 목적.',ok:true},
+      {t:'Swan-Ganz 1개로 모든 기능이 가능하다.',ok:false},
+      {t:'12Fr은 수혈 속도를 높이기 위한 것이며 Biopump와는 무관.',ok:false},
+      {t:'두 라인 중 하나는 반드시 Lt. IJV에 넣어야 한다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> Swan-Ganz: CVP·PAP·CO·SvO₂ 지속 감시. 12Fr large-bore: Biopump 연결 + RIS 경로. 각각 역할이 명확히 다릅니다. Biopump 사용 시 모든 pump line은 large-bore에 연결합니다.`,ng:`❌ Swan-Ganz는 감시, 12Fr large-bore는 Biopump 연결 목적입니다. 두 가지가 모두 필요합니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 6
+  { phase:'마취 준비',phaseIdx:1,
+    title:'RIS 설정 — 수혈 비율과 Cell Saver',
+    situation:'장비 준비',
+    vitals:[{l:'BP',v:`${rnd(112,124)}/${rnd(68,78)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(82,92)}`,u:'bpm',c:'n'},{l:'CVP',v:`${rnd(6,10)}`,u:'mmHg',c:'n'},{l:'PAP',v:`${rnd(18,26)}/${rnd(8,12)}`,u:'mmHg',c:pt.hasPPH?'w':'n'},{l:'CO',v:`${(5.5+Math.random()*1.5).toFixed(1)}`,u:'L/min',c:'n'},{l:'Temp',v:`${(36.5+Math.random()*0.6).toFixed(1)}`,u:'°C',c:'n'}],
+    context:`RIS 설정 중. Cell saver 준비 완료.`,
+    teaching:`RIS priming: Plasma sol A → 완료 후 5% albumin 500mL 혼합. 수혈 비율 pRBC:FFP:Plasma sol = 1:1:1. Platelet·Cryoprecipitate → RIS 혼합 금지(가온·필터 과정이 기능 파괴). Cell saver: NS 1L + Heparin 25,000 IU.`,
+    question:'RIS에 Platelet과 Cryoprecipitate를 혼합하지 않는 이유로 가장 정확한 것은?',
+    hint:'RIS의 가온·가압 과정이 혈소판과 cryoprecipitate를 손상시킵니다.',
+    choices:[
+      {t:'RIS의 가온·필터 과정이 혈소판 기능을 파괴하고 cryoprecipitate 단백을 변성시키기 때문.',ok:true},
+      {t:'양이 적어 RIS 흐름에 방해가 되기 때문.',ok:false},
+      {t:'감염 위험 때문에 별도 경로로 투여한다.',ok:false},
+      {t:'응고 인자가 너무 빨리 주입되기 때문.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> RIS는 혈액을 가온·가압하여 빠르게 주입합니다. 이 과정에서 혈소판 기능이 파괴되고 cryoprecipitate의 단백(fibrinogen, Factor VIII)이 변성됩니다.`,ng:`❌ RIS의 가온·필터 과정이 핵심입니다. 혈소판과 cryoprecipitate는 환자에게 직접 투여합니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 7
+  { phase:'마취 유도',phaseIdx:2,
+    title:'마취 유도 — RSI와 N₂O 금기',
+    situation:'마취 유도',
+    vitals:[{l:'BP',v:`${rnd(114,126)}/${rnd(70,78)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(84,94)}`,u:'bpm',c:'n'},{l:'SpO₂',v:`${rnd(93,96)}%`,u:'',c:'n'},{l:'CVP',v:`${rnd(6,10)}`,u:'mmHg',c:'n'},{l:'CO',v:`${(5.8+Math.random()*1.4).toFixed(1)}`,u:'L/min',c:'n'},{l:'Temp',v:`${(36.4+Math.random()*0.8).toFixed(1)}`,u:'°C',c:'n'}],
+    context:`복수 중등도. 흡인 위험 있어 RSI 적용. 유지: Isoflurane (air-O₂) + Fentanyl + Vecuronium.`,
+    teaching:`RSI: 산소 전투여 + 윤상연골 압박 + 신속 삽관. N₂O 금기: 폐쇄 공간 기체 팽창 → 공기색전 확대 + 장팽창. Fentanyl 1–5μg/kg bolus → 1–10μg/kg/h. Vecuronium 0.15mg/kg bolus.`,
+    question:'마취 유도 후 N₂O 대신 Medical air를 사용하는 직접적 이유는?',
+    hint:'N₂O의 물리적 특성: 폐쇄 공간 기체 팽창.',
+    choices:[
+      {t:'N₂O가 폐쇄된 공간의 기체를 팽창시켜 공기색전 확대 및 장팽창을 유발하기 때문.',ok:true},
+      {t:'N₂O는 마취 심도 유지에 효과가 없기 때문.',ok:false},
+      {t:'N₂O는 간독성이 있어 이식 간 기능을 저해하기 때문.',ok:false},
+      {t:'N₂O는 고비용이기 때문.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> N₂O는 폐쇄된 공간의 기체를 팽창시킵니다 → ① 공기색전 발생 시 크기 확대 ② 장 내 가스 팽창. 간이식에서 Medical air 사용이 표준입니다.`,ng:`❌ N₂O 금기 이유는 폐쇄 공간 기체 팽창입니다. 간독성이나 비용 문제가 아닙니다.`},
+    branchChoiceIdx:null,arUpdate:{'ar-start':'마취 시작','ar-phase':'마취 유도'}},
+
+  // ── 8
+  { phase:'마취 유도',phaseIdx:2,
+    title:'유도 직후 — 저혈압 감별',
+    situation:'마취 유도 직후',
+    vitals:[{l:'MAP',v:`${rnd(54,66)}`,u:'mmHg',c:'w'},{l:'HR',v:`${rnd(96,110)}`,u:'bpm',c:'w'},{l:'CO',v:`${(6.8+Math.random()*1.2).toFixed(1)}`,u:'L/min',c:'n'},{l:'SvO₂',v:`${rnd(70,76)}%`,u:'',c:'n'},{l:'CVP',v:`${rnd(4,7)}`,u:'mmHg',c:'w'},{l:'SVR',v:`${rnd(520,680)}`,u:'dyn',c:'w'}],
+    context:`마취 유도 직후 MAP 하락. CO·SvO₂는 정상 유지 중.`,
+    teaching:`간경변 hyperdynamic circulation 특성: CO↑, SVR↓. 감별: CO 높음+SvO₂ 정상 = SVR(afterload) 감소 패턴. CO 감소+SvO₂ 감소 = 심기능 저하/저혈량. 수축기 90mmHg 이상+CO·SvO₂ 정상 → 즉각 승압제 불필요.`,
+    question:'CO 높음 + SvO₂ 정상 + 수축기 96mmHg. 처치로 가장 적절한 것은?',
+    hint:'수축기 90mmHg 이상, CO·SvO₂ 정상 → 즉각 승압제가 필요하지 않을 수 있습니다.',
+    choices:[
+      {t:'CO 적절 + SvO₂ 정상 → 수축기 90mmHg 이상 유지 시 승압제 보류, 소량 수액 추가 관찰.',ok:true},
+      {t:'즉시 epinephrine infusion 시작.',ok:false},
+      {t:'CO 높은 것은 이상 소견 → dopamine 투여.',ok:false},
+      {t:'Isoflurane 완전 중단으로 마취 심도 낮춤.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 간경변 hyperdynamic circulation: CO↑, SVR↓. 수축기 90mmHg 이상 + CO·SvO₂ 정상 → 즉각 승압제 불필요. 90mmHg 이하 시 epinephrine 10–20μg bolus 고려.`,ng:`❌ CO 6.8, SvO₂ 정상 상태에서 즉각 승압제는 과잉 처치입니다. 간경변의 hyperdynamic circulation 특성을 이해해야 합니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 9
+  { phase:'전무간기',phaseIdx:3,
+    title:'전무간기 — 기초 혈역학 파악',
+    situation:'간 박리 시작',
+    vitals:[{l:'MAP',v:`${rnd(64,76)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(88,98)}`,u:'bpm',c:'n'},{l:'CO',v:`${(6.5+Math.random()*1.5).toFixed(1)}`,u:'L/min',c:'n'},{l:'SvO₂',v:`${rnd(70,76)}%`,u:'',c:'n'},{l:'CVP',v:`${rnd(6,10)}`,u:'mmHg',c:'n'},{l:'EDVI',v:`${rnd(120,155)}`,u:'mL/m²',c:'n'}],
+    context:`ABGA: Ca²⁺ ${pt.Ca} mmol/L / K⁺ ${pt.K} mEq/L / Hct ${Math.round(pt.Hb*3)}% 확인.`,
+    teaching:`Ca²⁺ 교정 기준: <0.8 mmol/L → CaCl₂ 300mg씩 3분 간격 (900mg/h infusion). 목표 ≥0.8 (부정맥 빈번 시 ≥1.0). 수혈이 많아질수록 citrate에 의해 Ca²⁺ 감소 → 매 시간 재측정 필수.`,
+    question:`Ca²⁺ ${pt.Ca} mmol/L. 지금 즉각 교정이 필요한가?`,
+    hint:`Ca²⁺ 교정 기준: < 0.8 mmol/L. 현재값을 확인하세요.`,
+    choices: pt.Ca<0.8 ? [
+      {t:`Ca²⁺ ${pt.Ca} < 0.8 → CaCl₂ 300mg씩 투여하여 ≥0.8 목표로 즉각 교정.`,ok:true},
+      {t:'심근 수축력이 유지되므로 경과 관찰.',ok:false},
+      {t:'무간기까지 기다렸다가 한꺼번에 교정.',ok:false},
+      {t:'Calcium gluconate 1g을 한 번에 투여.',ok:false}
+    ] : [
+      {t:`Ca²⁺ ${pt.Ca} ≥ 0.8 → 정상 범위, 즉각 교정 불필요. 매 시간 재측정.`,ok:true},
+      {t:'Ca²⁺는 무조건 1.0 이상으로 유지해야 하므로 지금 교정.',ok:false},
+      {t:'CaCl₂ 300mg을 매 시간 예방적으로 투여.',ok:false},
+      {t:'전무간기에는 Ca²⁺를 측정할 필요가 없다.',ok:false}
+    ],
+    fb:{ok:pt.Ca<0.8?`✅ <strong>정답.</strong> Ca²⁺ < 0.8mmol/L → 즉각 교정. CaCl₂ 300mg씩 3분 간격 또는 900mg/h infusion. 심근 수축력 저하 예방.`:`✅ <strong>정답.</strong> Ca²⁺ ≥0.8mmol/L → 즉각 교정 불필요. 수혈이 많아지면 citrate로 Ca²⁺가 감소하므로 매 시간 재측정합니다.`,ng:`❌ Ca²⁺ 교정 기준: < 0.8 mmol/L. 이 환자 ${pt.Ca}은 ${pt.Ca<0.8?'교정 필요':'정상 범위'}.`},
+    branchChoiceIdx:null,arUpdate:{'ar-ca':pt.Ca<0.8?'교정 시행':`${pt.Ca} (정상)`,'ar-phase':'전무간기'}},
+
+  // ── 10
+  { phase:'전무간기',phaseIdx:3,
+    title:'전무간기 — FVP 상승 저혈압',
+    situation:'전무간기 — 위기',
+    vitals:[{l:'MAP',v:`${rnd(48,58)}`,u:'mmHg',c:'d'},{l:'HR',v:`${rnd(104,116)}`,u:'bpm',c:'w'},{l:'FVP',v:`${rnd(26,34)}`,u:'mmHg',c:'d'},{l:'SvO₂',v:`${rnd(58,66)}%`,u:'',c:'d'},{l:'CO',v:`${(4.2+Math.random()*1.0).toFixed(1)}`,u:'L/min',c:'w'},{l:'CVP',v:`${rnd(4,7)}`,u:'mmHg',c:'w'}],
+    context:`갑작스러운 MAP 하락 + FVP 급상승 + SvO₂ 감소 발생.`,
+    teaching:`지침: 혈압 갑자기 감소 시 가장 먼저 FVP 상승 여부 확인. FVP 상승 = IVC 압박(간 또는 외과 조작). 수액 급속 주입은 효과 없음. 외과의 즉시 통보가 최우선. SvO₂ 감소 = CO 감소 동반 → epinephrine 10–20μg bolus.`,
+    question:'FVP 급상승 + MAP 하락 + SvO₂ 감소. 가장 먼저 취할 조치는?',
+    hint:'FVP 상승 = IVC 압박. 외과의에게 알리는 것이 우선입니다.',
+    choices:[
+      {t:'외과의에게 IVC 압박 가능성 즉시 알림 + Epinephrine 10–20μg bolus.',ok:true},
+      {t:'CVP 낮으므로 수액 500mL 급속 주입.',ok:false},
+      {t:'FiO₂를 1.0으로 올려 SvO₂를 교정.',ok:false},
+      {t:'Mesenteric traction 의심 → 기다린다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 지침 핵심: "혈압 갑자기 감소 시 가장 먼저 FVP 상승 여부 확인." FVP 상승 = IVC 압박. 외과의 즉시 통보 + SvO₂ 저하(CO 감소)에 대해 epinephrine 10–20μg bolus.`,ng:`❌ FVP 상승 시 수액 급속 주입은 효과 없습니다. 외과의 통보가 최우선입니다.`},
+    branchChoiceIdx:null,arUpdate:{'ar-epi':'10μg x1'}},
+
+  // ── 11 【분기 1: K+ 보충】
+  { phase:'전무간기',phaseIdx:3,
+    title:'전무간기 — K⁺ 처치 결정 【분기 1】',
+    situation:'전해질 처치 결정',
+    vitals:[{l:'MAP',v:`${rnd(66,76)}`,u:'mmHg',c:'n'},{l:'K⁺',v:`${pt.K}`,u:'mEq/L',c:pt.K<3.5?'w':'n'},{l:'Ca²⁺',v:`${(0.82+Math.random()*0.1).toFixed(2)}`,u:'mmol/L',c:'n'},{l:'pH',v:`${(7.34+Math.random()*0.06).toFixed(2)}`,u:'',c:'n'},{l:'Hct',v:`${Math.round(pt.Hb*3)}%`,u:'',c:'w'},{l:'소변량',v:`${(0.8+Math.random()*0.6).toFixed(1)}`,u:'mL/kg/h',c:'n'}],
+    context:`K⁺ ${pt.K} mEq/L 확인. 전무간기 전해질 처치를 결정해야 합니다.`,
+    teaching:`재관류 전 K⁺ 보충 절대 금지: 재관류 시 보존액 고칼륨 혈액 급격 유입 → 치명적 hyperkalemia 위험. 재관류 후 소변량 유지 확인 후 K⁺ ≤3.5이면 0.3 mEq/kg/h로 교정.`,
+    question:`K⁺ ${pt.K} mEq/L. 지금 처치로 옳은 것은?`,
+    hint:'재관류 전 K⁺ 보충은 원칙적으로 금지입니다.',
+    choices:[
+      {t:'재관류 전이므로 K⁺ 보충하지 않는다. 재관류 후 소변량 유지 확인 후 교정.',ok:true,branchEffect:null},
+      {t:`K⁺ ${pt.K}은 낮으므로 지금 KCl 0.3 mEq/kg/h로 보충.`,ok:false,branchEffect:'kSupplemented'},
+      {t:'K⁺는 3.0 이하일 때만 관찰.',ok:false,branchEffect:null},
+      {t:'K⁺와 Ca²⁺를 동시에 빠르게 투여.',ok:false,branchEffect:null}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 재관류 전 K⁺ 보충 절대 금지. 재관류 시 보존액의 고칼륨 혈액이 급격 유입 → 치명적 hyperkalemia 위험. 재관류 후 소변량 유지 시 K⁺ 3.5 이하이면 0.3 mEq/kg/h로 교정합니다.`,ng:`❌ 재관류 전 K⁺ 보충은 금기입니다. 재관류 시 K⁺ 6.8 위기가 발생합니다.`,branchMsg:'🔴 K⁺ 재관류 전 보충 → 재관류 시 K⁺ 6.8 위기'},
+    branchChoiceIdx:1,arUpdate:{}},
+
+  // ── 12
+  { phase:'전무간기',phaseIdx:3,
+    title:'전무간기 — TEG 기반 응고 관리 원칙',
+    situation:'응고 감시',
+    vitals:[{l:'MAP',v:`${rnd(66,76)}`,u:'mmHg',c:'n'},{l:'CT',v:`${rnd(8,13)}분`,u:'',c:'n'},{l:'Alpha',v:`${rnd(41,52)}°`,u:'',c:'n'},{l:'MA',v:`${rnd(44,56)}mm`,u:'',c:'n'},{l:'LY30',v:`${(Math.random()*5).toFixed(1)}%`,u:'',c:'n'},{l:'FFP',v:'투여 중',u:'',c:'b'}],
+    context:`전무간기 TEG 결과: CT·Alpha·MA·LY30 모두 정상 범위. 현재 혈역학 안정.`,
+    teaching:`현대 간이식 응고 관리 표준: <span class="key">Viscoelastic test(TEG/ROTEM) 기반 표적 교정</span>. TEG가 정상이면 예방적 FFP 투여는 근거가 불충분하며, 과잉 투여는 TACO·portal hypertension 악화·불필요한 혈액 노출 위험이 있습니다. TEG 이상 시 표적 교정 원칙: CT>15분→FFP / Alpha<40°→Cryoprecipitate / MA<40mm→Platelet / LY30>7.5%→Transamine.`,
+    question:'전무간기 TEG가 정상인 이 환자에서 현재 응고 관리 원칙으로 가장 적절한 것은?',
+    hint:'현대 표준: TEG 이상 소견이 없으면 예방적 FFP 투여보다 viscoelastic 기반 표적 교정을 우선합니다.',
+    choices:[
+      {t:'TEG 정상이므로 예방적 FFP 투여는 보류. TEG를 지속 감시하며 이상 발생 시 표적 교정한다.',ok:true},
+      {t:'TEG 정상이어도 무간기 대비를 위해 반드시 FFP 2–3U를 예방적으로 투여해야 한다.',ok:false},
+      {t:'TEG 결과와 무관하게 모든 간이식에서 FFP는 최소 6U 이상 투여한다.',ok:false},
+      {t:'응고 관리는 수술 종료 후 ICU에서 시작하면 된다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 현대 간이식 응고 관리 표준: <span class="key">TEG/ROTEM 기반 표적 교정</span>. TEG가 정상 범위이면 예방적 FFP 투여는 근거가 충분하지 않으며 TACO, portal hypertension 악화, 불필요한 혈액 노출 위험이 있습니다. TEG를 지속 감시하면서 이상 발생 시 항목별 표적 교정합니다.`,ng:`❌ TEG 정상인 상태에서 예방적 FFP 투여는 현재 표준이 아닙니다. Viscoelastic test 기반 표적 교정이 현대 간이식 응고 관리의 핵심입니다.`},
+    branchChoiceIdx:null,arUpdate:{'ar-ffp':'FFP 2U','ar-prbc':'pRBC 4U'}},
+
+  // ── 13 【분기 2: Ca²⁺ 미교정】
+  { phase:'무간기',phaseIdx:4,
+    title:'무간기 — Ca²⁺ 교정 결정 【분기 2】',
+    situation:'무간기 — 대사 교정',
+    vitals:[{l:'MAP',v:`${rnd(54,66)}`,u:'mmHg',c:'w'},{l:'Ca²⁺',v:'0.66',u:'mmol/L',c:'d'},{l:'K⁺',v:`${branchTriggered('kSupplemented')?'5.2':pt.K}`,u:'mEq/L',c:branchTriggered('kSupplemented')?'w':'n'},{l:'pH',v:`${(7.26+Math.random()*0.06).toFixed(2)}`,u:'',c:'w'},{l:'Hct',v:`${rnd(22,27)}%`,u:'',c:'w'},{l:'Pump',v:`${(1.4+Math.random()*0.5).toFixed(1)}`,u:'L/min',c:'n'}],
+    context:`Ca²⁺ 0.66 mmol/L.${branchTriggered('kSupplemented')?' K⁺ 5.2 상승 중(전무간기 보충 영향).':''}`,
+    teaching:`Ca²⁺ <0.8 → 즉각 교정. CaCl₂ 300mg씩 3분 간격. Ca²⁺ 0.56 이하에서 심근 수축력 약화. 미교정 시 재관류 증후군이 더 심각하게 발생합니다.`,
+    question:'Ca²⁺ 0.66 mmol/L. 지금 처치는?',
+    hint:'Ca²⁺ < 0.8은 즉각 교정 기준입니다.',
+    choices:[
+      {t:'CaCl₂ 300mg씩 즉시 투여하여 Ca²⁺ ≥0.8 목표로 교정.',ok:true,branchEffect:null},
+      {t:'심근 수축력 유지되므로 재관류 직전까지 관찰.',ok:false,branchEffect:'caMissed'},
+      {t:'Calcium gluconate 2g을 한 번에 주입.',ok:false,branchEffect:null},
+      {t:'Ca²⁺는 무간기 종료 후 교정.',ok:false,branchEffect:'caMissed'}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> Ca²⁺ 0.66 < 0.8 → 즉각 교정. CaCl₂ 300mg씩 3분 간격. 미교정 시 재관류 증후군이 더 심각해집니다.`,ng:`❌ Ca²⁺ 0.66은 즉각 교정 기준입니다. 미교정 시 PRS가 더 심각하게 발생합니다.`,branchMsg:'⚠ Ca²⁺ 미교정 → 재관류 시 PRS 심각도 증가'},
+    branchChoiceIdx:1,arUpdate:{'ar-ca':'0.66→교정 중','ar-phase':'무간기'}},
+
+  // ── 14
+  { phase:'무간기',phaseIdx:4,
+    title:'무간기 — Back-bleeding 관리',
+    situation:'무간기 — 급성 출혈',
+    vitals:[{l:'MAP',v:`${rnd(44,56)}`,u:'mmHg',c:'d'},{l:'HR',v:`${rnd(108,120)}`,u:'bpm',c:'w'},{l:'Hct',v:`${rnd(18,24)}%`,u:'',c:'d'},{l:'CO',v:`${(3.8+Math.random()*0.8).toFixed(1)}`,u:'L/min',c:'w'},{l:'CVP',v:`${rnd(2,5)}`,u:'mmHg',c:'d'},{l:'출혈',v:'↑↑',u:'',c:'d'}],
+    context:`Back-bleeding 발생. 급격한 대량 출혈.`,
+    teaching:`Back-bleeding: 문맥혈로 간 관류 후 간하부 IVC 통한 출혈 (0.5–1L 전형적). RIS로 pRBC:FFP:Plasma sol = 1:1:1 신속 replace. CO 감소 동반 시 epinephrine 10–20μg bolus 추가.`,
+    question:'Back-bleeding 대량 출혈 시 즉각적인 처치로 가장 적절한 것은?',
+    hint:'RIS로 1:1:1 신속 수혈 + CO 감소 시 epinephrine.',
+    choices:[
+      {t:'RIS로 pRBC+FFP+Plasma sol (1:1:1) 신속 수혈 + epinephrine 10–20μg bolus.',ok:true},
+      {t:'수액만 대량 주입하고 수혈은 결과 확인 후.',ok:false},
+      {t:'Biopump flow를 최대로 올려 혈압 유지.',ok:false},
+      {t:'일시적이므로 승압제만 투여하고 기다린다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> Back-bleeding = 급격한 대량 출혈. RIS로 1:1:1 신속 수혈 + epinephrine 10–20μg bolus로 CO 감소 대응.`,ng:`❌ 수액 단독 또는 승압제 단독으로는 부족합니다. RIS를 통한 신속 수혈이 우선입니다.`},
+    branchChoiceIdx:null,arUpdate:{'ar-prbc':'pRBC 8U','ar-ffp':'FFP 12U','ar-epi':'10μg x2'}},
+
+  // ── 15 【분기 3: CVP 과다】
+  { phase:'재관류 준비',phaseIdx:5,
+    title:'재관류 직전 — CVP 관리 【분기 3】',
+    situation:'재관류 2분 전',
+    vitals:[{l:'MAP',v:`${rnd(66,76)}`,u:'mmHg',c:'n'},{l:'CVP',v:'14',u:'mmHg',c:'d'},{l:'MPAP',v:`${rnd(24,30)}`,u:'mmHg',c:pt.hasPPH?'d':'w'},{l:'Ca²⁺',v:`${branchTriggered('caMissed')?'0.64':(0.82+Math.random()*0.1).toFixed(2)}`,u:'mmol/L',c:branchTriggered('caMissed')?'d':'n'},{l:'K⁺',v:`${branchTriggered('kSupplemented')?'5.6':pt.K}`,u:'mEq/L',c:branchTriggered('kSupplemented')?'d':'n'},{l:'Temp',v:`${(35.2+Math.random()*0.5).toFixed(1)}`,u:'°C',c:'w'}],
+    context:`CVP 14 mmHg.${branchTriggered('kSupplemented')?' K⁺ 5.6 상승 중.':''}${branchTriggered('caMissed')?' Ca²⁺ 미교정 상태.':''}`,
+    teaching:`재관류 전 CVP 목표: ≤12 mmHg. CVP >12이면 active venesection 300mL (RIS port, 50mL 주사기). 과혈량 상태로 재관류 시 ST 상승·폐부종·심부전 위험 증가.`,
+    question:'CVP 14 mmHg (목표 ≤12). 재관류 전 처치로 옳은 것은?',
+    hint:'CVP >12이면 active venesection 300mL를 시행합니다.',
+    choices:[
+      {t:'Active venesection 300mL 즉시 시행하여 CVP ≤12로 낮춘다.',ok:true,branchEffect:null},
+      {t:'CVP 14는 허용 범위이므로 재관류 진행.',ok:false,branchEffect:'cvpOverload'},
+      {t:'Furosemide 40mg으로 이뇨 → CVP 낮춤.',ok:false,branchEffect:'cvpOverload'},
+      {t:'수액 중단하면 자연히 낮아진다.',ok:false,branchEffect:'cvpOverload'}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> CVP 14 > 12 → <span class="key">Active venesection 300mL</span> 즉시. RIS port 이용, 50mL 주사기로 시행. 재관류 후 volume overload에 의한 ST 상승 예방.`,ng:`❌ CVP 14는 목표 범위 초과입니다. Active venesection이 필요합니다. 이후 ST 상승 분기가 발동됩니다.`,branchMsg:'⚠ CVP 과다 → 재관류 후 ST 상승 필수 발생'},
+    branchChoiceIdx:1,arUpdate:{}},
+
+  // ── 16
+  { phase:'재관류 준비',phaseIdx:5,
+    title:'재관류 직전 — Solumedrol 타이밍',
+    situation:'재관류 1분 전',
+    vitals:[{l:'MAP',v:`${rnd(66,76)}`,u:'mmHg',c:'n'},{l:'CVP',v:`${branchTriggered('cvpOverload')?rnd(13,16):rnd(8,12)}`,u:'mmHg',c:branchTriggered('cvpOverload')?'d':'n'},{l:'MPAP',v:`${rnd(22,28)}`,u:'mmHg',c:'n'},{l:'K⁺',v:`${branchTriggered('kSupplemented')?rnd(55,62)/10:''+pt.K}`,u:'mEq/L',c:branchTriggered('kSupplemented')?'d':'n'},{l:'Ca²⁺',v:`${branchTriggered('caMissed')?'0.62':(0.84+Math.random()*0.08).toFixed(2)}`,u:'mmol/L',c:branchTriggered('caMissed')?'d':'n'},{l:'Temp',v:`${(35.0+Math.random()*0.6).toFixed(1)}`,u:'°C',c:'w'}],
+    context:`재관류 1분 전. Solumedrol 투여 타이밍을 결정합니다.`,
+    teaching:`Solumedrol 10mg/kg IV bolus: 문맥 문합 후 재관류 직전. 재관류 증후군 완화 + 면역억제 목적. 재관류 직전 분시환기량 10–15% 증가 → PaCO₂ 낮춰 CO₂ 증가에 대비.`,
+    question:'Solumedrol 10mg/kg의 투여 시점으로 옳은 것은?',
+    hint:'문맥(portal vein) 문합이 완료된 직후, 재관류 직전.',
+    choices:[
+      {t:'문맥 문합 완료 직후, 재관류(clamp 제거) 직전에 투여.',ok:true},
+      {t:'마취 유도 직후 즉시 투여.',ok:false},
+      {t:'재관류 완료 후 30분에 투여.',ok:false},
+      {t:'무간기 시작 시점에 투여.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> Solumedrol: <span class="key">문맥 문합 후, 재관류 직전</span>. 재관류 증후군 완화 + 면역억제 목적. 상태 불량 시 외과의와 상의하여 감량 고려.`,ng:`❌ Solumedrol 투여 시점: 문맥 문합 후, 재관류 직전. 마취 유도 시나 재관류 후가 아닙니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 17 【분기 4: Phenylephrine】
+  { phase:'재관류',phaseIdx:6,
+    title:'재관류 — PRS 발생 【분기 4】',
+    situation:'재관류 2분 — PRS!',
+    vitals:[
+      {l:'MAP',v:`${branchTriggered('caMissed')?rnd(32,42):rnd(42,52)}`,u:'mmHg',c:'d'},
+      {l:'HR', v:`${branchTriggered('caMissed')?rnd(28,36):rnd(36,46)}`,u:'bpm',c:'d'},
+      {l:'CVP',v:`${branchTriggered('cvpOverload')?rnd(20,26):rnd(14,20)}`,u:'mmHg',c:'d'},
+      {l:'SvO₂',v:`${rnd(50,60)}%`,u:'',c:'d'},
+      {l:'K⁺', v:`${branchTriggered('kSupplemented')?'6.8':'4.8'}`,u:'mEq/L',c:branchTriggered('kSupplemented')?'d':'w'},
+      {l:'Temp',v:`${(33.8+Math.random()*0.5).toFixed(1)}`,u:'°C',c:'d'}
+    ],
+    context:`PRS 발생. MAP ${branchTriggered('caMissed')?'32–42(Ca²⁺ 미교정 악화)':'42–52'} / HR 저하 / CVP ${branchTriggered('cvpOverload')?'20–26':'14–20'}.${branchTriggered('kSupplemented')?' K⁺ 6.8 — 치명적 위기!':''}`,
+    teaching:`PRS(재관류 증후군): 재관류 1–5분 내 서맥+저혈압+CVP 상승+SVR 감소 (빈도 30%). 원인: 보존액 K⁺ + 혈관작용 물질 → 심실기능부전. Drug of choice: Epinephrine (심기능 보조+서맥 개선+SVR 지원 동시). CVP ≥15 → active venesection 300mL 동시.`,
+    question:'PRS 발생. Drug of choice 선택으로 가장 적절한 것은?',
+    hint:'PRS에서 CO 감소+서맥이 동반될 때 SVR만 올리는 약제 단독 사용은 CO를 지원하지 못합니다. 심기능을 동시에 지원할 수 있는 약제를 선택하세요.',
+    choices:[
+      {t:'Epinephrine 10–20μg bolus + CVP 높으면 active venesection 동시 시행.',ok:true,branchEffect:null},
+      {t:'Phenylephrine을 단독 투여하여 SVR을 올린다.',ok:false,branchEffect:'phenylUsed'},
+      {t:'Dopamine만 투여.',ok:false,branchEffect:null},
+      {t:'수액 급속 주입으로 preload 증가.',ok:false,branchEffect:null}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> PRS 1차 선택: <span class="key">Epinephrine</span> — 심근 수축력 감소+서맥+SVR 감소를 동시 해결. 10–20μg bolus. CVP ≥15이면 active venesection 동시 시행.${branchTriggered('kSupplemented')?' K⁺ 6.8 → CaCl₂+NaHCO₃+과호흡 긴급 대응!':''} <span class="key">참고</span>: Phenylephrine이 PRS를 줄인다는 일부 데이터도 있으나, <strong>CO 감소+서맥이 동반된 PRS에서 단독 사용은 심기능을 지원하지 못해 부적절합니다.</strong>`,ng:`❌ CO 감소+서맥이 동반된 이 PRS 상황에서 phenylephrine 단독 투여는 SVR만 올리고 심기능을 지원하지 못합니다. Epinephrine이 이 상황에서 적합한 선택입니다. (분기 발동)`,branchMsg:'🔴 PRS에서 phenylephrine 단독 선택 → 심기능 악화 분기 발동'},
+    branchChoiceIdx:1,arUpdate:{'ar-prs':'발생','ar-epi':'추가 투여','ar-phase':'재관류'}},
+
+  // ── 18
+  { phase:'재관류',phaseIdx:6,
+    title:'재관류 후 — PGE1 투여',
+    situation:`재관류 10분 — ${branchTriggered('phenylUsed')?'심정지 위기!':'안정화 중'}`,
+    vitals:[
+      {l:'MAP',v:`${branchTriggered('phenylUsed')?rnd(38,48):rnd(62,74)}`,u:'mmHg',c:branchTriggered('phenylUsed')?'d':'n'},
+      {l:'HR', v:`${branchTriggered('phenylUsed')?rnd(28,38):rnd(78,90)}`,u:'bpm',c:branchTriggered('phenylUsed')?'d':'n'},
+      {l:'CVP',v:`${rnd(8,13)}`,u:'mmHg',c:'w'},
+      {l:'SvO₂',v:`${branchTriggered('phenylUsed')?rnd(48,58):rnd(68,74)}%`,u:'',c:branchTriggered('phenylUsed')?'d':'n'},
+      {l:'MPAP',v:`${rnd(22,30)}`,u:'mmHg',c:'w'},
+      {l:'Temp',v:`${(34.2+Math.random()*0.6).toFixed(1)}`,u:'°C',c:'w'}
+    ],
+    context: branchTriggered('phenylUsed') ? `Phenylephrine 단독 투여 후 CO 지원 없이 SVR만 상승 — 혈역학 불안정 지속.` : `PRS 처치 후 혈역학 회복. PGE1 투여 시점.`,
+    teaching: branchTriggered('phenylUsed') ? `Phenylephrine(alpha agonist 단독): SVR만 상승하고 심기능(inotrope·chronotrope) 지원이 없어, CO 감소+서맥이 동반된 PRS에서는 부적절합니다. Epinephrine으로 교체하여 심기능을 동시에 지원해야 합니다.` : `PGE1 10μg/h = 2mL/h. 재관류 후 혈압 안정 후 시작. SVR 값 보면서 신중히. ABO 부적합 간이식에서는 금기.`,
+    question: branchTriggered('phenylUsed')
+      ? '심정지 위기 상황. 즉각적인 처치로 가장 적절한 것은?'
+      : 'PGE1 투여 시점과 방법으로 옳은 것은?',
+    hint: branchTriggered('phenylUsed') ? 'Phenylephrine 즉시 중단, Epinephrine으로 교체.' : 'PGE1은 혈압 안정 후 투여. ABO 부적합에서는 금기.',
+    choices: branchTriggered('phenylUsed') ? [
+      {t:'Phenylephrine 즉시 중단 + Epinephrine bolus + infusion. 심폐소생술 준비.',ok:true},
+      {t:'Phenylephrine 용량을 더 늘린다.',ok:false},
+      {t:'Dopamine을 추가 투여.',ok:false},
+      {t:'수액 급속 주입으로 혈압 상승 시도.',ok:false}
+    ] : [
+      {t:'혈압 안정된 지금 PGE1 10μg/h (2mL/h) 시작. SVR 보면서 신중히.',ok:true},
+      {t:'PGE1은 재관류 직전에 미리 투여해야 효과 있다.',ok:false},
+      {t:'PGE1은 ABO 부적합에서도 동일하게 투여.',ok:false},
+      {t:'PGE1은 혈압 80 이상일 때만 투여.',ok:false}
+    ],
+    fb:{
+      ok: branchTriggered('phenylUsed')
+        ? `✅ <strong>정답.</strong> Epinephrine으로 교체. CO 감소+서맥 동반 PRS에서 phenylephrine 단독 사용은 심기능을 지원하지 못합니다.`
+        : `✅ <strong>정답.</strong> PGE1 10μg/h = 2mL/h, 재관류 후 혈압 안정 시 시작. ABO 부적합 간이식에서는 금기(외과의가 portal vein administration 시행).`,
+      ng: branchTriggered('phenylUsed')
+        ? `❌ CO 감소+서맥 동반 상황에서 phenylephrine 단독 유지는 혈역학 회복에 불충분합니다. Epinephrine으로 교체하세요.`
+        : `❌ PGE1은 재관류 후 혈압 안정 후 투여합니다. ABO 부적합에서는 금기입니다.`
+    },
+    branchChoiceIdx:null,arUpdate:{'ar-prbc':'pRBC 12U','ar-ffp':'FFP 16U'}},
+
+  // ── 19
+  { phase:'재관류',phaseIdx:6,
+    title:'재관류 — ST 변화 대응',
+    situation:'재관류 20분 — 심전도 이상',
+    vitals:[{l:'MAP',v:`${rnd(60,72)}`,u:'mmHg',c:'n'},{l:'CVP',v:`${branchTriggered('cvpOverload')?rnd(15,20):rnd(9,13)}`,u:'mmHg',c:branchTriggered('cvpOverload')?'d':'w'},{l:'ST(V5)',v:`${branchTriggered('cvpOverload')?'+2.5':'+1.0'}mm`,u:'',c:branchTriggered('cvpOverload')?'d':'w'},{l:'SvO₂',v:`${rnd(67,73)}%`,u:'',c:'n'},{l:'CO',v:`${(5.6+Math.random()*1.0).toFixed(1)}`,u:'L/min',c:'n'},{l:'Temp',v:`${(34.5+Math.random()*0.5).toFixed(1)}`,u:'°C',c:'w'}],
+    context:`V5 ST 변화 감지. CVP ${branchTriggered('cvpOverload')?'15–20':'9–13'} mmHg.`,
+    teaching:`재관류 후 ST 상승 감별: CVP 상승+ST 상승 = volume overload 패턴 → active venesection 우선. CVP 정상+ST 상승 = SVR 감소 또는 저체온(찬 관류액). 체온 교정과 승압제 고려.`,
+    question:'CVP 상승 + ST 상승. 즉각적인 처치로 가장 적절한 것은?',
+    hint:'CVP 상승 + ST 상승 = volume overload → active venesection 우선.',
+    choices:[
+      {t:'CVP 상승 + ST 상승 → volume overload. Active venesection 300mL 즉시.',ok:true},
+      {t:'ST 상승 → 즉시 nitroglycerin IV 시작.',ok:false},
+      {t:'심근경색 가능성 → 수술 중단.',ok:false},
+      {t:'CO 유지되므로 관찰만.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> CVP 상승 + ST 상승 = volume overload에 의한 심근 허혈. <span class="key">Active venesection 300mL</span> 즉시.${branchTriggered('cvpOverload')?' 재관류 전 venesection을 시행했다면 예방 가능했습니다.':''}`,ng:`❌ CVP 상승 + ST 상승 = volume overload 패턴. Venesection이 우선입니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 20
+  { phase:'신간기',phaseIdx:7,
+    title:'신간기 — TEG 기반 응고 교정',
+    situation:'신간기 — 응고 관리',
+    vitals:[{l:'MAP',v:`${rnd(68,78)}`,u:'mmHg',c:'n'},{l:'Fibrinogen',v:'64',u:'mg/dL',c:'d'},{l:'LY30',v:'9.4%',u:'',c:'d'},{l:'MA',v:'37',u:'mm',c:'w'},{l:'INR',v:`${(2.2+Math.random()*0.6).toFixed(1)}`,u:'',c:'w'},{l:'Temp',v:`${(35.6+Math.random()*0.5).toFixed(1)}`,u:'°C',c:'w'}],
+    context:`신간기 TEG: Fibrinogen 64 mg/dL / LY30 9.4% / MA 37mm — 복합 이상.`,
+    teaching:`신간기 응고 교정: Fibrinogen<80→Cryoprecipitate(0.15–0.3U/kg) / LY30>7.5%→Transamine 2mg/kg/h(저용량, 3–4시간만) / MA<40mm→Platelet / CT>15분→FFP. 원인: tPA(보존액), 저체온, 희석, heparin-like substance.`,
+    question:'이 TEG 결과에 따른 복합 처치로 가장 적절한 것은?',
+    hint:'Fibrinogen <80 → Cryo. LY30 >7.5% → Transamine 저용량. MA <40 → Platelet.',
+    choices:[
+      {t:'Cryoprecipitate 10U + Transamine 2mg/kg/h (신간기 저용량) + Platelet 고려.',ok:true},
+      {t:'FFP만 대량 투여.',ok:false},
+      {t:'Transamine 고용량 10mg/kg/h 즉시.',ok:false},
+      {t:'간기능 회복 시 자연 회복 → 관찰.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> ① Fibrinogen 64 < 80 → <span class="key">Cryoprecipitate</span> ② LY30 9.4% → <span class="key">Transamine 2mg/kg/h</span> (재관류 후 3–4시간만) ③ MA 37mm < 40 → Platelet. FFP는 CT > 15분 시 추가.`,ng:`❌ 각 TEG 항목별 교정: Fibrinogen→Cryo, LY30↑→Transamine, MA↓→Plt. FFP 단독으로는 불충분.`},
+    branchChoiceIdx:null,arUpdate:{'ar-phase':'신간기','ar-prbc':'pRBC 14U','ar-ffp':'FFP 18U'}},
+
+  // ── 21 【분기 5: 소변량 미대처】
+  { phase:'신간기',phaseIdx:7,
+    title:'신간기 — 소변량 감소 대처 【분기 5】',
+    situation:'신간기 — 소변량 위기',
+    vitals:[{l:'MAP',v:`${rnd(68,76)}`,u:'mmHg',c:'n'},{l:'소변량',v:'0.18',u:'mL/kg/h',c:'d'},{l:'CVP',v:`${rnd(7,10)}`,u:'mmHg',c:'n'},{l:'CO',v:`${(6.0+Math.random()*1.0).toFixed(1)}`,u:'L/min',c:'n'},{l:'Cr',v:`${pt.Cr}`,u:'mg/dL',c:pt.Cr>1.5?'w':'n'},{l:'K⁺',v:`${branchTriggered('kSupplemented')?'4.2':'3.4'}`,u:'mEq/L',c:'n'}],
+    context:`소변량 0.18 mL/kg/h (목표 ≥0.5). MAP·CVP·CO는 유지 중.${pt.hasHRS?' HRS 동반 환자.':''}`,
+    teaching:`신기능 보호의 핵심: ① MAP·혈량 최적화 (가장 우선) ② 신독성 약제 회피 ③ 적절한 이뇨제 사용. ⚠ 저용량 dopamine의 신보호 효과는 현재 근거가 충분하지 않습니다 (구시대적 교육 포인트). 현재 표준: 적절한 혈압·혈량 유지 + 필요 시 loop diuretic. 소변량 회복 안 되면 CVVHD 조기 고려.`,
+    question:'소변량 0.18 mL/kg/h, 혈역학 유지 중. 처치로 가장 적절한 것은?',
+    hint:'혈역학이 유지되는 상황에서 소변량 감소 → MAP 최적화 + 이뇨제 고려. 단, 혈량이 부족하면 이뇨제 선행은 금물.',
+    choices:[
+      {t:'MAP·혈량 최적화 확인 후 Furosemide 투여 고려. 소변량 지속 감소 시 CVVHD 조기 검토.',ok:true,branchEffect:null},
+      {t:'30분 더 기다려 본다.',ok:false,branchEffect:'urineIgnored'},
+      {t:'즉시 Furosemide 80mg IV.',ok:false,branchEffect:null},
+      {t:'혈량 부족 → 수액 500mL 급속 주입.',ok:false,branchEffect:null}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 혈역학이 유지되는 상황의 소변량 감소: ① MAP·혈량 최적화 확인 (가장 우선) ② Loop diuretic(furosemide) 투여 고려 ③ 지속 감소 시 CVVHD 조기 검토. <span class="key">저용량 dopamine의 신보호 효과는 현재 근거가 충분하지 않습니다</span> — MAP 유지와 혈량 최적화가 신기능 보호의 핵심입니다.${pt.hasHRS?' HRS 동반으로 더 적극적 대응이 필요합니다.':''}`,ng:`❌ 소변량 무시 시 급성신부전으로 진행합니다. 혈역학 유지 확인 후 furosemide 고려, 필요 시 CVVHD 조기 검토.`,branchMsg:'🔴 소변량 미대처 → 급성신부전 분기 발동'},
+    branchChoiceIdx:1,arUpdate:{'ar-urine':'480 mL (감소)'}},
+
+  // ── 22
+  { phase:'신간기',phaseIdx:7,
+    title:'신간기 — 전해질 관리',
+    situation:'신간기 — 전해질 이상',
+    vitals:[{l:'Na',v:`${Math.min(pt.Na+rnd(8,14),140)}`,u:'mEq/L',c:'n'},{l:'K⁺',v:`${branchTriggered('kSupplemented')?'3.0':'3.2'}`,u:'mEq/L',c:'w'},{l:'Mg²⁺',v:`${(0.55+Math.random()*0.1).toFixed(2)}`,u:'mmol/L',c:'w'},{l:'Ca²⁺',v:`${(0.88+Math.random()*0.1).toFixed(2)}`,u:'mmol/L',c:'n'},{l:'소변량',v:`${branchTriggered('urineIgnored')?'0.1':'0.9'}`,u:'mL/kg/h',c:branchTriggered('urineIgnored')?'d':'n'},{l:'Cr',v:`${branchTriggered('urineIgnored')?(pt.Cr+0.6).toFixed(1):pt.Cr}`,u:'mg/dL',c:branchTriggered('urineIgnored')?'d':'w'}],
+    context:`K⁺ 3.2 mEq/L / Mg²⁺ 저하.${branchTriggered('urineIgnored')?' 소변량 0.1 + Cr 상승 — 급성신부전 진행 중!':''}`,
+    teaching:`신간기 K⁺: 재관류 후 K⁺≤3.5+소변량 유지 → 0.3mEq/kg/h KCl. Mg²⁺ 저하: MgSO₄ 2g 5분간, 10분 간격 반복. Mg²⁺ 저하 = 치료 불응성 부정맥 위험.`,
+    question:'K⁺ 3.2, Mg²⁺ 저하. 우선 처치로 옳은 것은?',
+    hint:'재관류 후 K⁺ 3.5 이하 + 소변량 유지 → 교정 가능. Mg²⁺ → MgSO₄.',
+    choices:[
+      {t:'K⁺ 교정 (0.3 mEq/kg/h, 소변량 유지 확인 후) + MgSO₄ 2g 5분간 투여.',ok:true},
+      {t:'Na 상승했으므로 즉시 hypotonic solution으로 교체.',ok:false},
+      {t:'Mg²⁺ 임상적 의미 불분명 → 교정 안 함.',ok:false},
+      {t:'수술 후 신부전 우려 → K⁺ 교정 보류.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> K⁺ 3.2 < 3.5 + 소변량 유지 → <span class="key">KCl 0.3 mEq/kg/h</span>. Mg²⁺ 저하 → <span class="key">MgSO₄ 2g 5분간, 10분 간격 반복</span>. Mg²⁺ 저하는 부정맥 위험.`,ng:`❌ Mg²⁺ 저하는 부정맥 위험이 있어 교정 필요. K⁺는 소변량 유지 확인 후 교정.`},
+    branchChoiceIdx:null,arUpdate:{'ar-k':'교정 중','ar-urine':`${branchTriggered('urineIgnored')?'320 mL (신부전)':'1,020 mL'}`}},
+
+  // ── 23
+  { phase:'신간기',phaseIdx:7,
+    title:'신간기 — 이식 간 기능 평가',
+    situation:'재관류 2시간',
+    vitals:[{l:'Glucose',v:`${rnd(280,340)}`,u:'mg/dL',c:'w'},{l:'Lactate',v:`${(2.2+Math.random()*1.0).toFixed(1)}`,u:'mmol/L',c:'w'},{l:'Temp',v:`${(35.8+Math.random()*0.5).toFixed(1)}`,u:'°C',c:'w'},{l:'Bile',v:'생성 중',u:'',c:'n'},{l:'CO₂',v:'↑ 상승',u:'',c:'n'},{l:'MAP',v:`${rnd(70,80)}`,u:'mmHg',c:'n'}],
+    context:`담즙 생성 확인. CO₂ 생성 증가. 체온 상승 중. 혈당 상승.`,
+    teaching:`이식 간 기능 평가: 담즙 생성(최고 지표) / CO₂↑ / 체온↑ / Lactate↓ / 응고 호전 → 양호. 재관류 후 고혈당은 정상(이식 간 포도당 대량 유리, insulin resistance, glucagon↑). 혈당 목표 ≤250 mg/dL. Primary non-function: 담즙 미생성+승압제 요구↑+산증 심화.`,
+    question:'혈당 300 이상, Lactate 상승, 담즙 생성. 이식 간 기능 판단으로 옳은 것은?',
+    hint:'담즙 생성 = 이식 간 기능 양호. 고혈당은 재관류 후 정상 현상.',
+    choices:[
+      {t:'담즙 생성 + Lactate 감소 추세 → 정상 초기 기능. 혈당만 목표 250 이하 유지.',ok:true},
+      {t:'혈당 300 이상 → primary non-function 강력 지표.',ok:false},
+      {t:'Lactate 상승 → 이식 간 기능 부전 선언.',ok:false},
+      {t:'모든 수치 이상 → ICU 즉각 이송.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 담즙 생성 = 이식 간 기능 최고 지표. 재관류 후 고혈당은 정상(포도당 대량 유리, insulin resistance). Primary non-function 징후: 담즙 미생성 + 승압제 요구량↑ + 산증 심화 + 응고 악화.`,ng:`❌ 고혈당은 재관류 후 정상 현상입니다. 담즙이 생성되고 있으므로 primary non-function이 아닙니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 24
+  { phase:'간동맥 문합',phaseIdx:8,
+    title:'간동맥 문합 — 저분자 헤파린',
+    situation:'간동맥 문합 직후',
+    vitals:[{l:'MAP',v:`${rnd(72,82)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(78,88)}`,u:'bpm',c:'n'},{l:'K⁺',v:`${branchTriggered('kSupplemented')?'3.8':'3.6'}`,u:'mEq/L',c:'n'},{l:'Temp',v:`${(36.0+Math.random()*0.5).toFixed(1)}`,u:'°C',c:'n'},{l:'소변량',v:`${branchTriggered('urineIgnored')?'0.2':'1.0'}`,u:'mL/kg/h',c:branchTriggered('urineIgnored')?'d':'n'},{l:'Hct',v:`${rnd(25,29)}%`,u:'',c:'n'}],
+    context:`간동맥 문합 완료.${branchTriggered('urineIgnored')?' 소변량 0.2 지속.':''}`,
+    teaching:`저분자 heparin 20 IU/kg IV bolus: 간동맥 문합 직후 즉시 투여(혈전 예방). ATIII 투여: 목표 100%에 필요량의 1/2를 수술 중 투여. 간동맥 직경 3mm 이하이면 혈전 빈도 높음.${branchTriggered('urineIgnored')?' CVVHD 적극 고려.':''}`,
+    question:'간동맥 문합 직후 즉시 투여해야 할 약제로 옳은 것은?',
+    hint:'저분자 heparin 20 IU/kg IV bolus — 간동맥 문합 직후 표준.',
+    choices:[
+      {t:'저분자 heparin 20 IU/kg IV bolus 즉시 투여.',ok:true},
+      {t:'Warfarin 5mg 경구 투여.',ok:false},
+      {t:'출혈 위험 → 항응고 보류.',ok:false},
+      {t:'24시간 후 항응고 시작.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> <span class="key">저분자 heparin 20 IU/kg IV bolus</span> — 간동맥 문합 직후 즉시. 간동맥 혈전 예방.`,ng:`❌ 저분자 heparin 20 IU/kg를 간동맥 문합 직후 즉시 투여합니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 25
+  { phase:'담도 재건 & 마무리',phaseIdx:9,
+    title:'담도 재건 — 복합 출혈 관리',
+    situation:'담도 재건 — 지혈',
+    vitals:[{l:'MAP',v:`${rnd(68,78)}`,u:'mmHg',c:'n'},{l:'Hct',v:`${rnd(23,27)}%`,u:'',c:'w'},{l:'Fibrinogen',v:`${rnd(70,82)}`,u:'mg/dL',c:'w'},{l:'SVR',v:`${rnd(520,660)}`,u:'dyn',c:'w'},{l:'소변량',v:`${branchTriggered('urineIgnored')?'0.15':'0.85'}`,u:'mL/kg/h',c:branchTriggered('urineIgnored')?'d':'n'},{l:'Temp',v:`${(36.2+Math.random()*0.4).toFixed(1)}`,u:'°C',c:'n'}],
+    context:`지속적 소량 출혈. Hct 낮음 / Fibrinogen 경계 / SVR 저하.${branchTriggered('urineIgnored')?' 소변량 0.15.':''}`,
+    teaching:`신간기 SVR 저하: CO↑지만 혈압 낮아짐 → Dopamine/epinephrine 소량으로 organ perfusion 유지. Volume overload 주의하며 Hct 26–28% 유지.`,
+    question:'Hct 낮음 + Fibrinogen 경계 + SVR 저하. 처치 우선순위로 옳은 것은?',
+    hint:'Fibrinogen 교정 + 소량 수혈 + SVR 지원이 복합적으로 필요합니다.',
+    choices:[
+      {t:'Cryoprecipitate + pRBC 소량 + Dopamine으로 SVR·혈압 지원.',ok:true},
+      {t:'SVR 저하 → Phenylephrine 최대 용량.',ok:false},
+      {t:'Volume overload 우려 → 수혈 완전 중단.',ok:false},
+      {t:'Transamine 고용량 재시작.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> ① Cryoprecipitate → Fibrinogen 교정 ② pRBC 소량 → Hct 26–28% ③ Dopamine → SVR 저하 + 혈압 지원.`,ng:`❌ Phenylephrine 단독으로는 심기능 지원 안 됩니다. Cryoprecipitate + 수혈 + Dopamine 복합 처치.`},
+    branchChoiceIdx:null,arUpdate:{'ar-prbc':'pRBC 16U','ar-ffp':'FFP 20U'}},
+
+  // ── 26
+  { phase:'담도 재건 & 마무리',phaseIdx:9,
+    title:'수술 후반 — Metabolic Alkalosis',
+    situation:'수술 마무리',
+    vitals:[{l:'MAP',v:`${rnd(72,82)}`,u:'mmHg',c:'n'},{l:'pH',v:`${(7.38+Math.random()*0.06).toFixed(2)}`,u:'',c:'n'},{l:'HCO₃',v:`${rnd(26,32)}`,u:'mEq/L',c:'w'},{l:'Hct',v:`${rnd(26,29)}%`,u:'',c:'n'},{l:'Temp',v:`${(36.4+Math.random()*0.5).toFixed(1)}`,u:'°C',c:'n'},{l:'Bile',v:'생성 양호',u:'',c:'n'}],
+    context:`HCO₃ 약간 상승. 담즙 생성 양호. 체온 회복 중.`,
+    teaching:`수술 후 metabolic alkalosis: 간이식의 정상 과정. 수혈량·NaHCO₃와 무관. Steroid, 위액 배액, hormonal interaction의 이차 반응. 과도한 교정 불필요.`,
+    question:'수술 후 예상되는 metabolic alkalosis. 가장 적절한 설명은?',
+    hint:'간이식 후 metabolic alkalosis는 정상 과정입니다.',
+    choices:[
+      {t:'간이식의 정상 과정. Steroid·호르몬 반응에 의한 이차 반응. 과도한 교정 불필요.',ok:true},
+      {t:'NaHCO₃ 과다 투여 → 즉시 HCl 투여.',ok:false},
+      {t:'신기능 장애 증거 → 즉시 CVVHD.',ok:false},
+      {t:'Alkalosis 방지 위해 steroid 중단.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 수술 후 metabolic alkalosis는 간이식의 정상 과정. 수혈량·NaHCO₃와 무관. Steroid·위액 배액·hormonal interaction의 이차 반응.`,ng:`❌ Metabolic alkalosis는 간이식의 정상 과정입니다. 즉각적인 교정이 필요하지 않습니다.`},
+    branchChoiceIdx:null,arUpdate:{'ar-phase':'수술 종료 준비'}},
+
+  // ── 27
+  { phase:'담도 재건 & 마무리',phaseIdx:9,
+    title:'수술 종료 — ICU 이송 전 점검',
+    situation:'ICU 이송 준비',
+    vitals:[{l:'MAP',v:`${rnd(74,84)}`,u:'mmHg',c:'n'},{l:'HR',v:`${rnd(76,86)}`,u:'bpm',c:'n'},{l:'SpO₂',v:'99%',u:'',c:'n'},{l:'Temp',v:`${(36.5+Math.random()*0.4).toFixed(1)}`,u:'°C',c:'n'},{l:'pH',v:`${(7.38+Math.random()*0.04).toFixed(2)}`,u:'',c:'n'},{l:'K⁺',v:`${rnd(34,40)/10}`,u:'mEq/L',c:'n'}],
+    context:`수술 종료. 혈역학 안정. ICU 이송 전 최종 점검.`,
+    teaching:`ICU 이송 전 필수(지침 명시): ① 기관내 suction 시행 ② 기관튜브 고정 확인 ③ 약제 infusion 상태 확인. 간이식 후 즉각 발관은 표준이 아닙니다.`,
+    question:'ICU 이송 전 가장 먼저 확인해야 할 필수 항목은?',
+    hint:'지침 명시: 기관내 suction + 튜브 고정 확인.',
+    choices:[
+      {t:'기관내 suction 시행 + 기관튜브 고정 확인 후 이송.',ok:true},
+      {t:'발관하여 자발호흡 확인 후 이송.',ok:false},
+      {t:'마지막 ABG 결과 나올 때까지 수술실 대기.',ok:false},
+      {t:'ICU에서 새로 시작하므로 모든 infusion 중단.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> 지침: <span class="key">ICU 이송 전 기관내 suction 시행 + 튜브 고정 확인</span>. 간이식 후 즉각 발관은 표준 아님.`,ng:`❌ 간이식 후 즉각 발관은 표준이 아닙니다. 기관내 suction + 튜브 고정 확인이 필수입니다.`},
+    branchChoiceIdx:null,arUpdate:{'ar-phase':'ICU 이송 완료','ar-urine':`${branchTriggered('urineIgnored')?'1,120 mL':'2,040 mL'} (총)`}},
+
+  // ── 28
+  { phase:'마취 총정리',phaseIdx:10,
+    title:'케이스 총정리 — PRS 핵심 원칙',
+    situation:'사례 종합',
+    vitals:[{l:'총 시간',v:`${rnd(7,10)}h`,u:'',c:'b'},{l:'총 pRBC',v:'16U',u:'',c:'b'},{l:'총 FFP',v:'20U',u:'',c:'b'},{l:'PRS',v:'발생→회복',u:'',c:'b'},{l:'이식 간',v:'기능 양호',u:'',c:'n'},{l:'분기',v:`${Object.values(bState).filter(v=>v).length}/5 발동`,u:'',c:'b'}],
+    context:`환자: ${pt.name}, ${pt.age}세, ${pt.disease}, Child ${pt.childClass}, MELD ${pt.MELD}${pt.hasPPH?`, PPH ${pt.pphGrade}`:''}${pt.hasHRS?', HRS':''}.`,
+    teaching:`핵심 복습: K⁺ 재관류 전 보충 금지 / Ca²⁺<0.8 즉각 교정 / CVP>12→venesection / PRS(CO감소+서맥 동반)→Epinephrine 우선(phenylephrine 단독은 CO 지원 불가) / 소변량↓→혈량·MAP 최적화 우선, 이뇨제 고려.`,
+    question:'CO 감소와 서맥이 동반된 PRS에서 Phenylephrine 단독 사용이 부적절한 핵심 이유는?',
+    hint:'PRS에서 심근 수축력 저하 + 서맥이 동반됩니다.',
+    choices:[
+      {t:'CO 감소+서맥이 동반될 때 phenylephrine은 SVR만 올리고 심기능(inotrope·chronotrope)을 지원하지 못하기 때문.',ok:true},
+      {t:'Phenylephrine은 간이식에서 알레르기를 일으킨다.',ok:false},
+      {t:'Phenylephrine은 반감기가 너무 짧다.',ok:false},
+      {t:'Phenylephrine은 K⁺를 상승시킨다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> CO 감소+서맥이 동반된 PRS에서 phenylephrine(alpha agonist 단독)은 SVR만 올리고 심기능(inotropy·chronotropy)을 지원하지 못합니다. 이 상황에서는 Epinephrine이 적합한 선택입니다. <span class="key">주의</span>: phenylephrine 자체가 모든 상황에서 금기는 아니며, SVR 감소가 주된 경우나 예방적 사용에 관한 데이터도 있습니다.`,ng:`❌ CO 감소+서맥 동반 PRS에서 phenylephrine 단독 선택의 문제를 이해해야 합니다. 심기능을 동시에 지원할 수 있는 약제가 필요한 상황입니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 29
+  { phase:'마취 총정리',phaseIdx:10,
+    title:'최종 — HRS와 간이식',
+    situation:'최종 문제',
+    vitals:[{l:'HRS',v:pt.hasHRS?'동반':'없음',u:'',c:pt.hasHRS?'d':'n'},{l:'소변량',v:branchTriggered('urineIgnored')?'0.1':'0.9',u:'mL/kg/h',c:branchTriggered('urineIgnored')?'d':'n'},{l:'PPH',v:pt.hasPPH?pt.pphGrade:'없음',u:'',c:pt.hasPPH?'w':'n'},{l:'이식 간',v:'기능 양호',u:'',c:'n'},{l:'분기',v:`${Object.values(bState).filter(v=>v).length}/5`,u:'발동',c:'b'},{l:'결과',v:'ICU 이송',u:'완료',c:'n'}],
+    context:`HRS(Hepatorenal Syndrome): 신실질 손상 없는 기능적 신부전.`,
+    teaching:`HRS 병태생리: 간경변→portal HTN→splanchnic vasodilation→effective arterial blood volume↓→RAAS·SNS 활성→신혈관 수축. Type 1: 2주 내 Cr 2배 이상 급격 상승. Type 2: 완만(Cr 1.5–2.5). 간이식이 definitive treatment.`,
+    question:'HRS 환자에서 간이식이 definitive treatment인 이유로 가장 정확한 것은?',
+    hint:'HRS는 신실질 손상이 없는 기능적 장애입니다.',
+    choices:[
+      {t:'HRS는 신실질 손상 없는 기능적 장애 → 간이식으로 간기능 회복 시 신기능도 회복.',ok:true},
+      {t:'간이식 후 면역억제제가 신기능을 직접 개선.',ok:false},
+      {t:'신이식을 동시 시행하면 치료된다.',ok:false},
+      {t:'HRS는 간이식의 금기증이다.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답.</strong> HRS = 기능적 신부전. 신실질 손상 없이 간기능 저하로 인한 혈역학 변화가 원인. 간이식으로 간기능 회복 → 혈역학 정상화 → 신기능 회복. 간이식이 HRS의 definitive treatment.`,ng:`❌ HRS는 기능적 장애로 신실질 손상이 없습니다. 간이식 후 신기능 회복이 가능합니다.`},
+    branchChoiceIdx:null,arUpdate:{}},
+
+  // ── 30
+  { phase:'마취 총정리',phaseIdx:10,
+    title:'시뮬레이션 완료 — 최종 확인',
+    situation:'30단계 완료',
+    vitals:[{l:'총 단계',v:'30',u:'완료',c:'n'},{l:'분기 발동',v:`${Object.values(bState).filter(v=>v).length}/5`,u:'',c:'b'},{l:'케이스',v:pt.disease.slice(0,6),u:'',c:'b'},{l:'Child',v:pt.childClass,u:'class',c:'b'},{l:'MELD',v:`${pt.MELD}`,u:'',c:'b'},{l:'결과',v:'DONE',u:'',c:'n'}],
+    context:`분기 발동: ${Object.values(bState).filter(v=>v).length}개. ${Object.values(bState).filter(v=>v).length===0?'모든 분기 올바르게 처치!':'발동된 분기 복습 필요.'}`,
+    teaching:`N₂O 금기: 폐쇄 공간 기체 팽창 → 공기색전 확대+장팽창. Cell saver: NS 1L + Heparin 25,000 IU (1mL=5,000 IU). Medical air 사용이 표준입니다.`,
+    question:'Cell saver 준비와 N₂O 금기 이유의 조합으로 옳은 것은?',
+    hint:'Cell saver: NS + heparin 25,000 IU. N₂O: 폐쇄 공간 기체 팽창.',
+    choices:[
+      {t:'N₂O: 폐쇄 공간 기체 팽창(공기색전·장팽창) / Cell saver: NS 1L + Heparin 25,000 IU.',ok:true},
+      {t:'N₂O: 간독성 / Cell saver: NS만 사용.',ok:false},
+      {t:'N₂O: K⁺ 상승 / Cell saver: Plasma sol + Heparin.',ok:false},
+      {t:'N₂O: 비용 문제 / Cell saver: 항생제 추가.',ok:false}
+    ],
+    fb:{ok:`✅ <strong>정답! 시뮬레이션 완료.</strong> N₂O 금기: 폐쇄 공간 기체 팽창 → 공기색전 확대·장팽창. Cell saver: NS 1L + Heparin 25,000 IU (1mL = 5,000 IU). 수고하셨습니다!`,ng:`❌ N₂O 금기는 폐쇄 공간 기체 팽창입니다. Cell saver는 NS + heparin 25,000 IU입니다.`},
+    branchChoiceIdx:null,arUpdate:{}}
+  ]; // end return array
+} // end generateSteps
+
+// ═══════════════════════════════════════════════════════
+//  APP STATE
+// ═══════════════════════════════════════════════════════
+let pt, STEPS, shuffled, stepIdx, score, attempted, answered, hintUsed, prevVitals, user={};
+let wrongLog = []; // 오답 기록 [{stepNum, phase, title, question, chosen, correct, teaching}]
+
+const PHASE_NAMES=['수술 전 평가','마취 준비','마취 유도','전무간기','무간기','재관류 준비','재관류','신간기','간동맥 문합','담도 재건 & 마무리','마취 총정리'];
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+function init() {
+  pt = generatePatient();
+  renderLoginPreview(pt);
+}
+
+function renderLoginPreview(p) {
+  const items=[
+    {k:'연령/성별',v:`${p.age}세 ${p.gender}`,c:''},
+    {k:'기저질환',v:p.disease,c:'w'},
+    {k:'Child class',v:p.childClass,c:p.childClass==='C'?'d':'w'},
+    {k:'MELD',v:`${p.MELD}점`,c:p.MELD>25?'d':'w'},
+    {k:'술전 Na',v:`${p.Na}`,c:p.Na<125?'d':'w'},
+    {k:'PPH',v:p.hasPPH?p.pphGrade:'없음',c:p.hasPPH?'w':''},
+    {k:'HRS',v:p.hasHRS?'동반':'없음',c:p.hasHRS?'w':''},
+    {k:'INR',v:`${p.INR}`,c:p.INR>2.5?'d':'w'},
+    {k:'Cr',v:`${p.Cr}`,c:p.Cr>1.6?'w':''}
+  ];
+  document.getElementById('casePreview').innerHTML=items.map(i=>`<div class="cp-item"><div class="cp-key">${i.k}</div><div class="cp-val ${i.c}">${i.v}</div></div>`).join('');
+}
+
+function validateLogin() {
+  const yr=document.getElementById('fYear').value;
+  const nm=document.getElementById('fName').value.trim();
+  const em=document.getElementById('fEmail').value.trim();
+  return yr&&nm&&em&&em.includes('@');
+}
+
+function startSim() {
+  if (!validateLogin()) return;
+  user={institution:'조선대병원 마취통증의학과',year:document.getElementById('fYear').value,name:document.getElementById('fName').value.trim(),email:document.getElementById('fEmail').value.trim()};
+  initBranch();
+  STEPS=generateSteps(pt);
+  stepIdx=0;score=0;attempted=0;answered=false;hintUsed=false;prevVitals={};wrongLog=[];
+  document.getElementById('loginScreen').classList.add('gone');
+  document.getElementById('appHdr').classList.remove('hidden');
+  document.getElementById('appBody').classList.remove('hidden');
+  document.getElementById('appBody').classList.add('visible');
+  document.getElementById('hdrUser').textContent=`${user.year} ${user.name}`;
+  buildPatientBanner();
+  buildSidebar();
+  buildPips();
+  renderStep(0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PATIENT BANNER
+// ═══════════════════════════════════════════════════════
+function buildPatientBanner() {
+  const tags=[
+    {t:pt.disease,c:'warn'},{t:`Child ${pt.childClass}`,c:pt.childClass==='C'?'danger':'warn'},
+    {t:`MELD ${pt.MELD}`,c:pt.MELD>25?'danger':'warn'},{t:`Na ${pt.Na}`,c:pt.Na<125?'danger':'warn'},
+    ...(pt.hasPPH?[{t:`PPH ${pt.pphGrade}`,c:'warn'}]:[]),
+    ...(pt.hasHRS?[{t:'HRS 동반',c:'danger'}]:[])
+  ];
+  document.getElementById('patientBanner').innerHTML=`
+    <div class="pb-avatar">🧑‍⚕️</div>
+    <div class="pb-info">
+      <div class="pb-name">${pt.name} · ${pt.age}세 ${pt.gender}</div>
+      <div class="pb-tags">${tags.map(t=>`<span class="pb-tag ${t.c}">${t.t}</span>`).join('')}</div>
+    </div>
+    <div class="pb-stats">
+      <div class="pb-stat"><div class="pb-stat-val ${pt.INR>2.5?'d':'w'}">${pt.INR}</div><div class="pb-stat-key">INR</div></div>
+      <div class="pb-stat"><div class="pb-stat-val w">${pt.Plt}K</div><div class="pb-stat-key">Plt</div></div>
+      <div class="pb-stat"><div class="pb-stat-val w">${pt.Hb}</div><div class="pb-stat-key">Hb</div></div>
+      <div class="pb-stat"><div class="pb-stat-val ${pt.Cr>1.5?'w':'b'}">${pt.Cr}</div><div class="pb-stat-key">Cr</div></div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  SIDEBAR & PIPS
+// ═══════════════════════════════════════════════════════
+function buildSidebar() {
+  const list=document.getElementById('ppList');
+  const groups={};
+  STEPS.forEach((s,i)=>{if(!groups[s.phaseIdx])groups[s.phaseIdx]=[];groups[s.phaseIdx].push({i,t:s.title.split('—')[1]?.trim()||s.title.slice(0,14)});});
+  list.innerHTML=Object.keys(groups).map(pi=>`
+    <div class="pp-group-label">${PHASE_NAMES[pi]}</div>
+    ${groups[pi].map(item=>`<div class="pp-item pending" id="pp-${item.i}"><div class="pp-dot">${item.i+1}</div><div class="pp-text">${item.t}</div></div>`).join('')}
+  `).join('');
+  updateBranchUI();
+}
+
+function buildPips() {
+  document.getElementById('phasePips').innerHTML=PHASE_NAMES.map((_,i)=>`<div class="pip" id="pip-${i}"></div>`).join('');
+}
+
+function updatePips() {
+  const cur=STEPS[stepIdx]?.phaseIdx||0;
+  PHASE_NAMES.forEach((_,i)=>{
+    const p=document.getElementById(`pip-${i}`);
+    if(!p)return;
+    p.className='pip'+(i<cur?' done':i===cur?' active':'');
+  });
+  document.getElementById('hdrStep').textContent=stepIdx+1;
+}
+
+function updateSidebarPP() {
+  STEPS.forEach((_,i)=>{
+    const el=document.getElementById(`pp-${i}`);
+    if(!el)return;
+    el.className='pp-item '+(i<stepIdx?'done':i===stepIdx?'active':'pending');
+    if(i<stepIdx)el.querySelector('.pp-dot').textContent='✓';
+    else el.querySelector('.pp-dot').textContent=i+1;
+  });
+  updatePips();
+}
+
+// ═══════════════════════════════════════════════════════
+//  VITALS
+// ═══════════════════════════════════════════════════════
+function renderVitals(vitals) {
+  const grid=document.getElementById('vbGrid');
+  grid.innerHTML=vitals.map(v=>{
+    const prev=prevVitals[v.l];
+    const changed=prev&&prev!==v.v;
+    const flashCls=changed?(v.c==='d'?' flash-red':' flash'):'';
+    // 이전값과 변화 방향 계산
+    let deltaHTML='';
+    let prevHTML='';
+    if(changed&&prev){
+      // 숫자 비교 (단위 제거)
+      const prevNum=parseFloat(prev.replace(/[^0-9.-]/g,''));
+      const curNum=parseFloat(v.v.replace(/[^0-9.-]/g,''));
+      if(!isNaN(prevNum)&&!isNaN(curNum)&&prevNum!==curNum){
+        const diff=curNum-prevNum;
+        const pct=Math.abs(diff);
+        // danger 항목은 반대 방향이 나쁜 것
+        const goingWorse=(v.c==='d'&&diff>0)||(v.c==='w'&&diff>0)||(v.c==='n'&&diff<0);
+        const arrow=diff>0?'▲':'▼';
+        const cls=goingWorse?'up-bad':'down';
+        deltaHTML=`<div class="vi-delta ${cls}">${arrow}${Math.abs(diff).toFixed(1)}</div>`;
+        prevHTML=`<div class="vi-prev">${prev}</div>`;
+      }
+    }
+    return `<div class="vi${flashCls}" title="${v.l}: ${v.v}${v.u}${prev?` (이전: ${prev})`:''}">
+      ${deltaHTML}
+      <div class="vi-l">${v.l}</div>
+      <div class="vi-v ${v.c}">${v.v}</div>
+      <div class="vi-u">${v.u}</div>
+      ${prevHTML}
+    </div>`;
+  }).join('');
+  const m={};vitals.forEach(v=>m[v.l]=v.v);prevVitals=m;
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER STEP — narrative 숨김, 선택지 셔플
+// ═══════════════════════════════════════════════════════
+function renderStep(i) {
+  answered=false;hintUsed=false;
+  const s=STEPS[i];
+
+  document.getElementById('prPhase').textContent=s.phase;
+  document.getElementById('prTitle').textContent=s.title;
+  document.getElementById('prStep').textContent=`${i+1} / ${STEPS.length}`;
+  document.getElementById('prPhase').className='pr-phase'+(s.title.includes('분기')?' branch-active':'');
+
+  // 분기 컨텍스트 카드: 분기가 발동된 후 단계에서 관련 분기가 있으면 표시
+  hideBranchContext();
+  const triggeredKeys=BRANCH_KEYS.filter(k=>bState[k]);
+  if(triggeredKeys.length>0&&i>0){
+    const lastTriggered=triggeredKeys[triggeredKeys.length-1];
+    // 분기가 발동된 직후 2단계 동안 표시
+    const triggerStep=STEPS.findIndex((st,si)=>si<i&&st.branchChoiceIdx!==null&&bState[lastTriggered]);
+    if(triggerStep>=0&&i-triggerStep<=3) showBranchContext(lastTriggered);
+  }
+
+  renderVitals(s.vitals);
+  updateSidebarPP();
+
+  // 선택지 셔플
+  shuffled=shuffleChoices(s.choices);
+
+  const choicesHTML=shuffled.map((c,ci)=>{
+    return `<button class="ch-btn" onclick="selectChoice(${ci})" id="ch-${ci}">
+      <span class="ch-key">${String.fromCharCode(65+ci)}</span>
+      <span>${c.t}</span>
+    </button>`;
+  }).join('');
+
+  const isBranchStep = s.branchChoiceIdx !== null;
+  document.getElementById('scCard').innerHTML=`
+    <div class="sc-situation-bar">▸ ${s.situation}</div>
+    <div class="sc-context">
+      <div class="sc-context-label">현재 상황</div>
+      ${s.context}
+    </div>
+    <div class="sc-narr" id="scNarr">
+      <div class="sc-narr-title">📋 학습 포인트</div>
+      <div class="sc-text">${s.teaching}</div>
+    </div>
+    <div class="sc-q">❓ ${s.question}${isBranchStep?'<span class="sc-q-branch">⚡ 이 선택이 이후 상황에 영향을 줍니다</span>':''}</div>
+    <div class="ch-wrap">
+      <div class="ch-hdr">
+        <span>▸ 처치 선택</span>
+        <button class="hint-btn" id="hintBtn">💡 힌트</button>
+      </div>
+      <div class="hint-box" id="hintBox">${s.hint}</div>
+      <div class="choices">${choicesHTML}</div>
+    </div>
+    <div class="fb-wrap" id="fbWrap">
+      <div class="fb-hdr"><span class="fb-badge" id="fbBadge"></span></div>
+      <div class="fb-text" id="fbText"></div>
+      <div class="fb-branch-consequence" id="fbBranch" style="display:none">
+        <div class="bc-title">⚡ 분기 발동 — 이후 단계에 영향</div>
+        <div id="fbBranchText"></div>
+      </div>
+      <button class="retry-btn" id="retryBtn">↺ 다시 시도</button>
+    </div>
+    <div class="sc-nav">
+      <span class="sc-nav-left" id="navLeft"></span>
+      <button class="next-btn" id="nextBtn">${i<STEPS.length-1?'다음 단계 →':'결과 보기 →'}</button>
+    </div>`;
+
+  // 동적 버튼 이벤트 바인딩
+  document.getElementById('hintBtn').addEventListener('click',function(){showHint();});
+  document.getElementById('retryBtn').addEventListener('click',function(){retry();});
+  document.getElementById('nextBtn').addEventListener('click',function(){goNext();});
+}
+
+// ═══════════════════════════════════════════════════════
+//  SELECT CHOICE — narrative 답변 후 공개
+// ═══════════════════════════════════════════════════════
+function selectChoice(ci) {
+  if(answered)return;
+  answered=true;attempted++;
+  const s=STEPS[stepIdx];
+  const choice=shuffled[ci];
+  const isOk=choice.ok;
+  if(isOk){
+    score++;
+  }
+
+  // 버튼 스타일
+  shuffled.forEach((_,i)=>{
+    const btn=document.getElementById(`ch-${i}`);
+    btn.disabled=true;
+    if(shuffled[i].ok)btn.classList.add('correct');
+    else if(i===ci)btn.classList.add('wrong');
+    else btn.classList.add('dim');
+  });
+
+  // 분기 처리
+  if(!isOk&&choice.branchEffect){
+    setBranch(choice.branchEffect,true);
+    showBranchBanner(s.fb.branchMsg||`⚡ 분기 발동`,true);
+    document.getElementById('fbBranch').style.display='block';
+    document.getElementById('fbBranchText').textContent=s.fb.branchMsg||'이후 단계에서 더 어려운 상황이 발생합니다.';
+    document.getElementById('fbBadge').className='fb-badge branch';
+    document.getElementById('fbBadge').textContent='✗ 오답 + 분기 발동!';
+    STEPS=generateSteps(pt);
+  } else {
+    document.getElementById('fbBadge').className=`fb-badge ${isOk?'ok':'ng'}`;
+    document.getElementById('fbBadge').textContent=isOk?'✓ 정답':'✗ 오답';
+  }
+
+  document.getElementById('fbText').innerHTML=isOk?s.fb.ok:s.fb.ng;
+  document.getElementById('fbWrap').classList.add('show');
+  if(!isOk){document.getElementById('retryBtn').classList.add('show');}
+
+  const nextBtn=document.getElementById('nextBtn');
+  nextBtn.classList.add('show');
+  if(!isOk)nextBtn.className='next-btn show branch-next';
+
+  // ★ 답변 후 teaching(학습 포인트) 공개
+  const narr=document.getElementById('scNarr');
+  if(narr)narr.classList.add('show');
+
+  // 오답 기록
+  if (!isOk) {
+    wrongLog.push({
+      stepNum: stepIdx + 1,
+      phase: s.phase,
+      title: s.title,
+      question: s.question,
+      chosen: choice.t,
+      correctAnswer: shuffled.find(ch => ch.ok)?.t || '',
+      feedback: s.fb.ng,
+      teaching: s.teaching || ''
+    });
+  }
+
+  // 점수 업데이트
+  document.getElementById('sbScore').textContent=score;
+  document.getElementById('sbDen').textContent=`/ ${attempted}`;
+  const p=Math.round(score/attempted*100);
+  document.getElementById('sbPct').textContent=p+'%';
+  document.getElementById('progBar').style.width=p+'%';
+  document.getElementById('sbSub').textContent=`정답률 ${p}% · ${attempted}/${STEPS.length} 완료`;
+
+  // 마취 기록지
+  updateAR(s.arUpdate||{});
+  document.getElementById('fbWrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function updateAR(u) {
+  const now=new Date();
+  const t=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  if(u['ar-start']==='마취 시작'){const el=document.getElementById('ar-start');if(el)el.textContent=t;}
+  ['ar-prbc','ar-ffp','ar-urine','ar-k','ar-ca','ar-epi','ar-prs','ar-phase'].forEach(k=>{
+    if(u[k]!==undefined){const el=document.getElementById(k);if(el)el.textContent=u[k];}
+  });
+  if(bState.kSupplemented){const el=document.getElementById('ar-k');if(el){el.textContent='보충(오류)';el.className='ar-v d';}}
+  if(bState.caMissed){const el=document.getElementById('ar-ca');if(el){el.textContent='미교정(오류)';el.className='ar-v d';}}
+  if(bState.phenylUsed){const el=document.getElementById('ar-epi');if(el){el.textContent='Phenyl(오류)';el.className='ar-v d';}}
+  if(u['ar-prs']){const el=document.getElementById('ar-prs');if(el){el.textContent='발생';el.className='ar-v d';}}
+}
+
+// ═══════════════════════════════════════════════════════
+//  HINT / RETRY / NEXT
+// ═══════════════════════════════════════════════════════
+function showHint() {
+  if(hintUsed)return;hintUsed=true;
+  document.getElementById('hintBox').classList.add('show');
+  const btn=document.getElementById('hintBtn');
+  if(btn){btn.disabled=true;btn.textContent='힌트 사용됨';}
+}
+
+function retry() {
+  answered=false;
+  shuffled.forEach((_,i)=>{const btn=document.getElementById(`ch-${i}`);if(btn){btn.disabled=false;btn.className='ch-btn';}});
+  document.getElementById('fbWrap').classList.remove('show');
+  document.getElementById('nextBtn').classList.remove('show');
+  document.getElementById('retryBtn').classList.remove('show');
+  document.getElementById('fbBranch').style.display='none';
+  const narr=document.getElementById('scNarr');if(narr)narr.classList.remove('show');
+}
+
+function goNext() {
+  if(stepIdx<STEPS.length-1){stepIdx++;renderStep(stepIdx);window.scrollTo({top:0,behavior:'smooth'});}
+  else showComplete();
+}
+
+// ═══════════════════════════════════════════════════════
+//  COMPLETE
+// ═══════════════════════════════════════════════════════
+function showComplete() {
+  const p=Math.round(score/STEPS.length*100);
+  document.getElementById('compUser').textContent=`${user.institution} · ${user.year} · ${user.name}`;
+  document.getElementById('compScore').textContent=`${score}/${STEPS.length}`;
+  let grade,msg;
+  if(p>=87){grade='S — Outstanding';msg='간이식 마취의 모든 핵심 의사결정을 정확히 수행했습니다.';}
+  else if(p>=73){grade='A — Excellent';msg='우수한 수행입니다. 발동된 분기 포인트를 복습하세요.';}
+  else if(p>=60){grade='B — Good';msg='재관류 관리와 전해질 원칙을 집중 복습하세요.';}
+  else{grade='C — Needs Review';msg='간이식 마취 지침 전반을 다시 학습하고 재도전하세요.';}
+  document.getElementById('compGrade').textContent=grade;
+  document.getElementById('compMsg').textContent=msg;
+  const branchDescs=[
+    {k:'kSupplemented',label:'전무간기 K⁺ 보충',consequence:'재관류 시 K 6.8 위기'},
+    {k:'caMissed',label:'무간기 Ca²⁺ 미교정',consequence:'PRS 심각도 증가'},
+    {k:'cvpOverload',label:'재관류 전 CVP 과다',consequence:'재관류 후 ST 상승 필수'},
+    {k:'phenylUsed',label:'Phenylephrine 단독 선택 (CO저하+서맥 동반)',consequence:'심기능 지원 부족으로 혈역학 불안정 지속'},
+    {k:'urineIgnored',label:'소변량 감소 미대처',consequence:'급성신부전 진행'},
+  ];
+  document.getElementById('bsSummary').innerHTML=branchDescs.map(b=>`
+    <div class="bs-entry">
+      <div class="bs-entry-dot ${bState[b.k]?'ng':'ok'}"></div>
+      <div class="bs-entry-text"><strong>${b.label}:</strong> ${bState[b.k]?`⚠ 발동 → ${b.consequence}`:'✅ 올바르게 처치'}</div>
+    </div>`).join('');
+  document.getElementById('completeScreen').classList.add('show');
+  // 시뮬레이션 완료 후 이메일 전송
+  sendResultEmail(grade, p);
+}
+
+function restartSim() {
+  pt=generatePatient();initBranch();STEPS=generateSteps(pt);
+  stepIdx=0;score=0;attempted=0;answered=false;hintUsed=false;prevVitals={};wrongLog=[];
+  document.getElementById('completeScreen').classList.remove('show');
+  ['ar-prbc','ar-ffp'].forEach(k=>{const el=document.getElementById(k);if(el)el.textContent='0 U';});
+  ['ar-urine'].forEach(k=>{const el=document.getElementById(k);if(el)el.textContent='0 mL';});
+  ['ar-k','ar-ca','ar-epi'].forEach(k=>{const el=document.getElementById(k);if(el){el.textContent='미시행';el.className='ar-v';}});
+  document.getElementById('ar-start').textContent='—';
+  document.getElementById('ar-prs').textContent='—';
+  document.getElementById('ar-phase').textContent='수술 전';
+  document.getElementById('sbScore').textContent='0';document.getElementById('sbDen').textContent='/ 0';
+  document.getElementById('sbPct').textContent='—';document.getElementById('progBar').style.width='0%';
+  document.getElementById('sbSub').textContent='시작하세요';
+  buildPatientBanner();buildSidebar();renderLoginPreview(pt);renderStep(0);
+  window.scrollTo({top:0});
+}
+
+// ═══════════════════════════════════════════════════════
+//  WINDOW 전역 노출 (동적 onclick 대응)
+// ═══════════════════════════════════════════════════════
+window.selectChoice=selectChoice;
+window.showHint=showHint;
+window.retry=retry;
+window.goNext=goNext;
+
+
+// ═══════════════════════════════════════════════════════
+//  메일 설정
+// ═══════════════════════════════════════════════════════
+const SUPERVISOR_EMAIL = 'mdmole@chosun.ac.kr';
+
+// HTML 태그를 plain-text로 변환 (이메일 본문용)
+function stripHtml(s) {
+  return (s || '')
+    .replace(/<div class="abox[^"]*">/gi, '\n[포인트] ')
+    .replace(/<div class="abox-label">[^<]*<\/div>/gi, '')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function sendResultEmail(grade, percent) {
+  const statusEl = document.getElementById('emailStatus');
+  if (statusEl) statusEl.textContent = '📧 결과 이메일 발송 중...';
+
+  // 오답 요약
+  let wrongSummary = '';
+  if (wrongLog.length === 0) {
+    wrongSummary = '✅ 모든 문제를 정답으로 처리했습니다. 훌륭합니다!';
+  } else {
+    wrongSummary = '❌ 틀린 문제 ' + wrongLog.length + '개\n';
+    wrongLog.forEach(function(w, i) {
+      wrongSummary += '\n' + '━'.repeat(30) + '\n';
+      wrongSummary += '[' + (i + 1) + '] ' + w.phase + ' — ' + stripHtml(w.title) + '\n';
+      wrongSummary += '\n❓ 질문:\n' + stripHtml(w.question) + '\n';
+      wrongSummary += '\n✗ 내가 선택한 답:\n' + stripHtml(w.chosen) + '\n';
+      wrongSummary += '\n✓ 정답:\n' + stripHtml(w.correctAnswer) + '\n';
+      wrongSummary += '\n📋 학습 포인트:\n' + stripHtml(w.teaching) + '\n';
+    });
+  }
+
+  // 분기 요약
+  const branchLabels = [
+    { k: 'kSupplemented', label: '전무간기 K+ 보충' },
+    { k: 'caMissed',      label: '무간기 Ca2+ 미교정' },
+    { k: 'cvpOverload',   label: '재관류 전 CVP 과다' },
+    { k: 'phenylUsed',    label: 'Phenylephrine 단독 선택' },
+    { k: 'urineIgnored',  label: '소변량 감소 미대처' },
+  ];
+  const branchSummary = branchLabels
+    .map(function(b) { return (bState[b.k] ? '⚠ 발동' : '✅ 안전') + ' — ' + b.label; })
+    .join('\n');
+
+  const now = new Date();
+  const timestamp = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0') + ' ' +
+    String(now.getHours()).padStart(2, '0') + ':' +
+    String(now.getMinutes()).padStart(2, '0');
+
+  const payload = {
+    to_email:         user.email,
+    supervisor_email: SUPERVISOR_EMAIL,
+    user_name:        user.name,
+    user_year:        user.year,
+    user_institution: user.institution,
+    score:            score,
+    total:            STEPS.length,
+    percent:          percent,
+    grade:            grade,
+    timestamp:        timestamp,
+    case_info:        pt.disease + ' / Child ' + pt.childClass + ' / MELD ' + pt.MELD,
+    wrong_count:      wrongLog.length,
+    wrong_summary:    wrongSummary,
+    branch_summary:   branchSummary,
+  };
+
+  console.log('[Mail] wrongLog.length:', wrongLog.length);
+  console.log('[Mail] percent:', percent);
+
+  fetch('/.netlify/functions/sendmail', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    if (res.ok) {
+      if (statusEl) statusEl.innerHTML =
+        '✅ 이메일 발송 완료 → <span style="color:var(--acc)">' + user.email +
+        '</span> &amp; <span style="color:var(--t3)">' + SUPERVISOR_EMAIL + '</span> (지도교수)';
+    } else {
+      if (statusEl) statusEl.textContent = '⚠ 발송 실패: ' + (res.error || '서버 오류');
+    }
+  })
+  .catch(function(err) {
+    console.error('sendmail error:', err);
+    if (statusEl) statusEl.textContent = '⚠ 발송 실패: ' + err.message;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  DOM READY
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  init();
+  var loginBtn=document.getElementById('loginBtn');
+  if(loginBtn){loginBtn.disabled=true;loginBtn.addEventListener('click',function(){startSim();});}
+  var bbClose=document.getElementById('bbClose');
+  if(bbClose){bbClose.addEventListener('click',function(){document.getElementById('branchBanner').classList.remove('show');});}
+  var compRestart=document.getElementById('compRestart');
+  if(compRestart){compRestart.addEventListener('click',function(){restartSim();});}
+  var resendEmail=document.getElementById('resendEmail');
+  if(resendEmail){resendEmail.addEventListener('click',function(){
+    const pct=Math.round(score/STEPS.length*100);
+    let grade='C — Needs Review';
+    if(pct>=87)grade='S — Outstanding';
+    else if(pct>=73)grade='A — Excellent';
+    else if(pct>=60)grade='B — Good';
+    sendResultEmail(grade,pct);
+    var st=document.getElementById('emailStatus');
+    if(st){st.textContent='이메일 재전송 중...';st.style.color='var(--t3)';}
+  });}
+  ['fYear','fName','fEmail'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('input',function(){
+      var btn=document.getElementById('loginBtn');if(btn)btn.disabled=!validateLogin();
+    });
+  });
+});
+</script>
+</body>
+</html>

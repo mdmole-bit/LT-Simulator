@@ -1,0 +1,8 @@
+{
+  "name": "lt-simulator",
+  "version": "1.0.0",
+  "description": "간이식 마취 시뮬레이터 — 조선대병원 마취통증의학과",
+  "dependencies": {
+    "nodemailer": "^6.9.9"
+  }
+}
