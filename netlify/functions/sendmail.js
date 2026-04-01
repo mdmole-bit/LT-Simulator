@@ -178,3 +178,26 @@ function buildHtmlBody(d, emoji) {
   html += '</div></body></html>';
   return html;
 }
+  html += '<div class="wrap">';
+  html += '<div class="hdr">';
+  html += '<div class="hdr-sub">간이식 마취 시뮬레이터 | 조선대병원 마취통증의학과</div>';
+  html += '<div class="hdr-name">' + d.user_name + ' 선생님</div>';
+  html += '<div class="hdr-info">' + d.user_year + ' · ' + d.user_institution + '</div>';
+  html += '</div>';
+  html += '<div class="body">';
+  html += '<div class="score-box">';
+  html += '<div class="sc"><div class="lbl">점수</div><div class="val">' + d.score + '<span style="font-size:14px;color:#6b849e;font-weight:400;"> / ' + d.total + '</span></div></div>';
+  html += '<div class="sc"><div class="lbl">정답률</div><div class="val">' + d.percent + '%</div></div>';
+  html += '<div class="sc"><div class="lbl">등급</div><div class="val sm">' + emoji + ' ' + d.grade + '</div></div>';
+  html += '<div class="sc"><div class="lbl">케이스</div><div class="val sm">' + d.case_info + '</div></div>';
+  html += '<div class="sc"><div class="lbl">시행일시</div><div class="val sm">' + d.timestamp + '</div></div>';
+  html += '</div>';
+  html += '<div class="sec"><div class="sec-title">틀린 문제 해설 (' + d.wrong_count + '개)</div>';
+  html += '<div class="wrong-box">' + wrongHtml + '</div></div>';
+  html += '<div class="sec"><div class="sec-title">분기 포인트 결과</div>';
+  html += '<div class="branch-box">' + branchHtml + '</div></div>';
+  html += '</div>';
+  html += '<div class="ftr">간이식 마취 시뮬레이터 · 조선대병원 마취통증의학과 · ' + d.timestamp + '</div>';
+  html += '</div></body></html>';
+  return html;
+}
