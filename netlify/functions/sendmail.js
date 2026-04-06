@@ -91,21 +91,38 @@ exports.handler = async function(event) {
     html:    htmlText,
   };
 
-  // 수련의 → 지도교수 순서로 별도 발송
+  // 재시도 포함 발송 함수 (421 등 일시적 오류 대응)
+  async function sendWithRetry(mailOptions, label, maxRetry) {
+    var delay = function(ms) { return new Promise(function(r){ setTimeout(r, ms); }); };
+    for (var attempt = 1; attempt <= maxRetry; attempt++) {
+      try {
+        var info = await transporter.sendMail(mailOptions);
+        console.log('Mail OK [' + label + '] attempt=' + attempt, '->', mailOptions.to);
+        return info;
+      } catch (err) {
+        var isRetryable = err.responseCode === 421 || err.responseCode === 450 ||
+                          err.responseCode === 451 || err.responseCode === 452 ||
+                          (err.message && err.message.indexOf('Temporary') >= 0);
+        console.warn('Mail FAIL [' + label + '] attempt=' + attempt, 'code=' + err.responseCode, err.message);
+        if (!isRetryable || attempt === maxRetry) throw err;
+        var wait = attempt * 8000; // 8초, 16초 간격으로 재시도
+        console.log('Retrying in ' + wait + 'ms...');
+        await delay(wait);
+      }
+    }
+  }
+
+  // 수련의 → 지도교수 순서로 별도 발송 (각 최대 3회 재시도)
   try {
-    const info1 = await transporter.sendMail(mailToStudent);
-    console.log('Mail 1 (student):', info1.messageId, '->', data.to_email);
-
-    const info2 = await transporter.sendMail(mailToSupervisor);
-    console.log('Mail 2 (supervisor):', info2.messageId, '->', data.supervisor_email);
-
+    var info1 = await sendWithRetry(mailToStudent, 'student', 3);
+    var info2 = await sendWithRetry(mailToSupervisor, 'supervisor', 3);
     return {
       statusCode: 200,
       headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify({ ok: true, student: info1.messageId, supervisor: info2.messageId }),
     };
   } catch (err) {
-    console.error('Mail send error:', err);
+    console.error('Mail send error (all retries failed):', err);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
