@@ -64,28 +64,45 @@ exports.handler = async function(event) {
       user: GMAIL_USER,
       pass: GMAIL_PASS,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 
   const gradeEmoji = GRADE_EMOJI[data.grade] || '📋';
   const subject = '[간이식 마취 시뮬레이터] ' + data.user_name + ' 결과 — ' + data.score + '/' + data.total + '점 (' + data.percent + '%)';
 
-  const mailOptions = {
+  const plainText = buildPlainText(data, gradeEmoji);
+  const htmlText  = buildHtmlBody(data, gradeEmoji);
+
+  const mailToStudent = {
     from:    '"간이식 마취 시뮬레이터" <' + GMAIL_USER + '>',
     to:      data.to_email,
-    cc:      data.supervisor_email,
     subject: subject,
-    text:    buildPlainText(data, gradeEmoji),
-    html:    buildHtmlBody(data, gradeEmoji),
+    text:    plainText,
+    html:    htmlText,
   };
 
-  // 발송
+  const mailToSupervisor = {
+    from:    '"간이식 마취 시뮬레이터" <' + GMAIL_USER + '>',
+    to:      data.supervisor_email,
+    subject: '[지도교수 수신] ' + subject,
+    text:    plainText,
+    html:    htmlText,
+  };
+
+  // 수련의 → 지도교수 순서로 별도 발송
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Mail sent:', info.messageId, '->', data.to_email, 'CC:', data.supervisor_email);
+    const info1 = await transporter.sendMail(mailToStudent);
+    console.log('Mail 1 (student):', info1.messageId, '->', data.to_email);
+
+    const info2 = await transporter.sendMail(mailToSupervisor);
+    console.log('Mail 2 (supervisor):', info2.messageId, '->', data.supervisor_email);
+
     return {
       statusCode: 200,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ ok: true, messageId: info.messageId }),
+      body: JSON.stringify({ ok: true, student: info1.messageId, supervisor: info2.messageId }),
     };
   } catch (err) {
     console.error('Mail send error:', err);
@@ -155,29 +172,6 @@ function buildHtmlBody(d, emoji) {
   html += '.branch-box{font-size:13px;line-height:2.1;}';
   html += '.ftr{background:#f0f4f8;border-top:1px solid #d8e2ee;padding:13px 28px;font-size:11px;color:#98afc4;}';
   html += '</style></head><body>';
-  html += '<div class="wrap">';
-  html += '<div class="hdr">';
-  html += '<div class="hdr-sub">간이식 마취 시뮬레이터 | 조선대병원 마취통증의학과</div>';
-  html += '<div class="hdr-name">' + d.user_name + ' 선생님</div>';
-  html += '<div class="hdr-info">' + d.user_year + ' · ' + d.user_institution + '</div>';
-  html += '</div>';
-  html += '<div class="body">';
-  html += '<div class="score-box">';
-  html += '<div class="sc"><div class="lbl">점수</div><div class="val">' + d.score + '<span style="font-size:14px;color:#6b849e;font-weight:400;"> / ' + d.total + '</span></div></div>';
-  html += '<div class="sc"><div class="lbl">정답률</div><div class="val">' + d.percent + '%</div></div>';
-  html += '<div class="sc"><div class="lbl">등급</div><div class="val sm">' + emoji + ' ' + d.grade + '</div></div>';
-  html += '<div class="sc"><div class="lbl">케이스</div><div class="val sm">' + d.case_info + '</div></div>';
-  html += '<div class="sc"><div class="lbl">시행일시</div><div class="val sm">' + d.timestamp + '</div></div>';
-  html += '</div>';
-  html += '<div class="sec"><div class="sec-title">틀린 문제 해설 (' + d.wrong_count + '개)</div>';
-  html += '<div class="wrong-box">' + wrongHtml + '</div></div>';
-  html += '<div class="sec"><div class="sec-title">분기 포인트 결과</div>';
-  html += '<div class="branch-box">' + branchHtml + '</div></div>';
-  html += '</div>';
-  html += '<div class="ftr">간이식 마취 시뮬레이터 · 조선대병원 마취통증의학과 · ' + d.timestamp + '</div>';
-  html += '</div></body></html>';
-  return html;
-}
   html += '<div class="wrap">';
   html += '<div class="hdr">';
   html += '<div class="hdr-sub">간이식 마취 시뮬레이터 | 조선대병원 마취통증의학과</div>';
